@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">图像处理器</string>
+    <string name="title_activity_main">主活动</string>
+    <string name="start_now">开始!</string>
+    <string name="navigation_drawer_open">打开导航抽屉</string>
+    <string name="navigation_drawer_close">关闭导航抽屉</string>
+    <string name="nav_header_desc">导航标题</string>
+    <string name="action_settings">设置</string>
+
+    <string name="menu_home">主页</string>
+    <string name="menu_gallery">相集</string>
+    <string name="menu_slideshow">幻灯片</string>
+    <string name="menu_tools">工具</string>
+    <string name="menu_camera">相机</string>
+    <string name="menu_share">分享</string>
+    <string name="menu_settings">设置</string>
+    <string name="menu_history">历史记录</string>
+    <string name="menu_about">关于</string>
+    <string name="select_image_from_gallery">从相集中选择照片</string>
+    <string name="capture_image">捕获图像</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_other">其它</string>
+    <string name="dark_mode">夜间模式</string>
+
+    <string name="language">语言</string>
+    <string name="english">英语</string>
+    <string name="chinese">中文</string>
+    <string name="camera">相机</string>
+    <string name="an_image_will_be_shown_here">图片会在此处显示</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+
+    <string name="title_activity_settings">设置</string>
+    <string name="theme_header">主题</string>
+    <string name="language_header">语言</string>
+    <string name="language_title">语言</string>
+    <string name="others_header">其它</string>
+    <string name="about_dialog_title">关于</string>
+    <string name="action_quit">退出程序</string>
+    <string name="quit_dialog_message">确定要退出该应用吗？</string>
+    <string name="cancel">取消</string>
+    <string name="no_camera">抱歉！该移动设备没有相机</string>
+    <string name="system_camera">系统相机</string>
+    <string name="showImage">预览</string>
+    <string name="system_gallery">系统相册</string>
+    <string name="snack_bar_text">图片已删除</string>
+    <string name="snack_bar_undo">复原</string>
+    <string name="camera_opened">相机已打开</string>
+    <string name="delete">删除</string>
+    <string name="no_history">无历史记录</string>
+    <string name="crop">裁剪</string>
+    <string name="continue_text">继续</string>
+</resources>

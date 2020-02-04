@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.StartActivity">
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+
+        <RadioButton
+            android:id="@+id/radioButton1"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@drawable/dot_select"
+            android:button="@null"/>
+
+        <RadioButton
+            android:id="@+id/radioButton2"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@drawable/dot_select"
+            android:button="@null"/>
+
+        <RadioButton
+            android:id="@+id/radioButton3"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@drawable/dot_select"
+            android:button="@null"/>
+
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/button_background"
+        android:visibility="gone"
+        android:text="@string/start_now"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        android:contentDescription="@string/start_now"/>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="200dp"
+        android:textAlignment="center"
+        android:maxLines="2"
+        android:textColor="@color/cardview_shadow_start_color"
+        android:textSize="35sp"
+        tools:ignore="PrivateResource" />
+
+</RelativeLayout>
