@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -12,21 +13,22 @@ import java.util.List;
 @Dao
 public interface ImageDao {
 
-    @Insert
-    void insertImage(Image image);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertImage(Image images);
 
     @Update
-    void updateImage(Image image);
+    void updateImage(Image images);
 
     @Delete
-    void deleteImage(Image image);
+    void deleteImage(Image images);
 
-//    @Query("SELECT * FROM image WHERE imageUri = :imageUri LIMIT 1")
-//    LiveData<List<Image>> findImageByUri(String imageUri);
-//
+    @Query("SELECT * FROM image WHERE imageUri = :imageUri LIMIT 1")
+    LiveData<List<Image>> findImageByUri(String imageUri);
+
 //    @Query("SELECT * FROM image WHERE imageName LIKE :imageName LIMIT 1")
 //    LiveData<List<Image>> findImageByName(String imageName);
 
+    // Allow the app to update UI automatically when the data changes
     @Query("SELECT * FROM image")
     LiveData<List<Image>> getAllImages();
 

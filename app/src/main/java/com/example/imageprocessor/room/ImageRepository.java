@@ -30,6 +30,11 @@ public class ImageRepository {
         new DeleteImageAsyncTask(imageDao).execute(image);
     }
 
+    // TODO: NOT SURE IF IT WORKS!!!
+    public LiveData<List<Image>> findImageByUri(String imageUri) {
+        return imageDao.findImageByUri(imageUri);
+    }
+
     public LiveData<List<Image>> getAllImages() {
         return allImages;
     }
