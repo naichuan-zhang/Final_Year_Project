@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.imageprocessor" >
+    package="com.example.imageprocessor">
 
     <uses-feature
         android:name="android.hardware.camera.autofocus"
@@ -22,11 +22,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning" >
-
+        tools:ignore="GoogleAppIndexingWarning">
         <provider
-            android:authorities="com.example.imageprocessor.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.imageprocessor.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -36,33 +35,26 @@
 
         <activity
             android:name=".activity.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:configChanges="locale"
-            android:parentActivityName=".activity.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.MainActivity" />
-        </activity>
+            android:configChanges="layoutDirection|locale"
+            android:label="@string/title_activity_settings" />
 
-        <!-- TODO: set MainActivity as a Single Task, prevent it from opening twice -->
+        <!-- TODO: set MainActivity as a Single Task, prevent it from opening twice
+                   by adding -> launchMode="singleTask" -->
         <activity
             android:name=".activity.MainActivity"
             android:label="@string/title_activity_main"
-            android:launchMode="singleTask"
-            android:configChanges="locale"
+            android:configChanges="layoutDirection|locale"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".activity.StartActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="locale" />
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".activity.SplashActivity"
             android:label="@string/app_name"
             android:launchMode="standard"
-            android:configChanges="locale"
-            android:theme="@style/AppTheme.Launcher" >
+            android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.os.ResultReceiver;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -13,9 +15,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
@@ -23,10 +26,8 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
-import androidx.preference.PreferenceScreen;
 
 import com.example.imageprocessor.R;
-import com.example.imageprocessor.misc.CurrentMode;
 import com.example.imageprocessor.misc.SettingsConfig;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -37,6 +38,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import java.util.Locale;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity: ";
 
     private AppBarConfiguration mAppBarConfiguration;
+    private SettingsConfig settingsConfig;
+    private SharedPreferences sharedPreferences;
+    private Locale currentLocale;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,24 +90,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        initSettings();
-    }
+        settingsConfig = new SettingsConfig(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        currentLocale = getResources().getConfiguration().locale;
 
-    private void initSettings() {
-        SettingsConfig settingsConfig = new SettingsConfig(this);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        // init Dark Mode
-        boolean darkModeOn = sharedPreferences.getBoolean("dark_mode", false);
-        Log.i(TAG, "Current Dark Mode: " + darkModeOn);
-        if (darkModeOn) {
-            settingsConfig.darkModeOn();
-        }
-
-        // TODO: init Language
-        String language = sharedPreferences.getString("language", "english");
-        Log.i(TAG, "Current Language: " + language);        // either "english" or "chinese"
-
+        initDarkMode();
     }
 
     @Override
@@ -124,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_about:
                 Log.i(TAG, "action about");
+                // TODO: action about to be finished ...
                 return true;
             case R.id.action_quit:
                 Log.i(TAG, "action quit");
@@ -131,6 +124,25 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.i(TAG, "onConfigurationChanged...");
+        if (!currentLocale.equals(newConfig.locale)) {
+            Toast.makeText(this, "Configuration Changed ..." + currentLocale, Toast.LENGTH_SHORT).show();
+            currentLocale = newConfig.locale;
+        }
+    }
+
+    // init Dark Mode settings
+    private void initDarkMode() {
+        boolean darkModeOn = sharedPreferences.getBoolean("dark_mode", false);
+        Log.i(TAG, "Current Dark Mode: " + darkModeOn);
+        if (darkModeOn) {
+            settingsConfig.darkModeOn();
         }
     }
 

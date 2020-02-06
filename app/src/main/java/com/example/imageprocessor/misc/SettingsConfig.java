@@ -2,6 +2,7 @@ package com.example.imageprocessor.misc;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
@@ -15,7 +16,6 @@ import androidx.preference.ListPreference;
 import com.example.imageprocessor.R;
 
 import java.util.Locale;
-import java.util.Objects;
 
 public class SettingsConfig {
 
@@ -50,7 +50,33 @@ public class SettingsConfig {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
     }
 
-    public void changeLanguage(ListPreference languageListPreference, Activity activity) {
+    public void changeLocale(ListPreference languageListPreference, FragmentActivity activity) {
+        int index = languageListPreference.findIndexOfValue(languageListPreference.getValue());
+        if (index != -1) {
+            // prints either "English - 英文" or "Simplified Chinese - 简体中文"
+            Toast.makeText(getContext(), languageListPreference.getEntries()[index], Toast.LENGTH_SHORT).show();
+            Resources resources = getContext().getResources();
+            DisplayMetrics metrics = resources.getDisplayMetrics();
+            Configuration configuration = resources.getConfiguration();
+            if (languageListPreference.getValue().equalsIgnoreCase("english"))
+                configuration.setLocale(new Locale("en_US"));
+            else if (languageListPreference.getValue().equalsIgnoreCase("chinese"))
+                configuration.setLocale(new Locale("zh"));
+            resources.updateConfiguration(configuration, metrics);
+            refreshSettings(activity);
+        }
+    }
+
+    private void refreshSettings(FragmentActivity activity) {
+        // refresh the current activity without a blink
+        activity.finish();
+        activity.overridePendingTransition(0, 0);
+        getContext().startActivity(activity.getIntent());
+        activity.overridePendingTransition(0, 0);
+    }
+
+    @Deprecated
+    public void changeLanguage(ListPreference languageListPreference, FragmentActivity activity) {
         Resources resources = getContext().getResources();
         Configuration configuration = resources.getConfiguration();
         DisplayMetrics displayMetrics = resources.getDisplayMetrics();
@@ -66,13 +92,5 @@ public class SettingsConfig {
             resources.updateConfiguration(configuration, displayMetrics);
             refreshSettings(activity);
         }
-    }
-
-    private void refreshSettings(Activity activity) {
-        // refresh the current activity without a blink
-        Objects.requireNonNull(activity).finish();
-        activity.overridePendingTransition(0, 0);
-        getContext().startActivity(activity.getIntent());
-        activity.overridePendingTransition(0, 0);
     }
 }
