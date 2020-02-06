@@ -51,4 +51,7 @@
     <string name="no_history">无历史记录</string>
     <string name="crop">裁剪</string>
     <string name="continue_text">继续</string>
+    <string name="action_about">关于</string>
+    <string name="dark_mode_on">夜间模式已开启</string>
+    <string name="dark_mode_off">夜间模式已关闭</string>
 </resources>
