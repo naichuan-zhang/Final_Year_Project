@@ -9,4 +9,10 @@
         <item>english</item>
         <item>chinese</item>
     </string-array>
+
+    <!-- supported language list -->
+    <string-array name="languages" translatable="false">
+        <item>en-US</item>
+        <item>zh</item>
+    </string-array>
 </resources>

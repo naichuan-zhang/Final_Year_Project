@@ -54,4 +54,6 @@
     <string name="action_about">关于</string>
     <string name="dark_mode_on">夜间模式已开启</string>
     <string name="dark_mode_off">夜间模式已关闭</string>
+
+    <string name="device">此设备</string>
 </resources>

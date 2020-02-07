@@ -50,6 +50,7 @@ public class SettingsConfig {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
     }
 
+    @Deprecated
     public void changeLocale(ListPreference languageListPreference, FragmentActivity activity) {
         int index = languageListPreference.findIndexOfValue(languageListPreference.getValue());
         if (index != -1) {
