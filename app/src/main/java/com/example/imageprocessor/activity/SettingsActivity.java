@@ -21,6 +21,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.misc.DarkModeSharedPref;
 import com.example.imageprocessor.misc.SettingsConfig;
 
 
@@ -28,8 +29,17 @@ public class SettingsActivity extends AppCompatActivity {
 
     private final static String TAG = "SettingsActivity: ";
 
+    DarkModeSharedPref darkModeSharedPref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // init dark mode settings on SettingsActivity
+        darkModeSharedPref = new DarkModeSharedPref(this);
+        if (darkModeSharedPref.loadDarkModeState()) {
+            setTheme(R.style.DarkTheme);
+        } else {
+            setTheme(R.style.AppTheme);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
         setTitle(R.string.title_activity_settings);

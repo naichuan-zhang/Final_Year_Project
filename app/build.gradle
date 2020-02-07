@@ -63,7 +63,7 @@ dependencies {
     implementation project(path: ':openCVLibrary348')
 
     // TODO: Room - keep 2.2.0 version!
-    def room_version = "2.2.0"
+    def room_version = "2.1.0"
     //noinspection GradleDependency
     implementation "androidx.room:room-runtime:$room_version"
     // TODO: This might occur <Cause: unable to find valid certification path to requested target>

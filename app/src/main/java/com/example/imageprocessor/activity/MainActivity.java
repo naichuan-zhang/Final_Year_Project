@@ -4,11 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.os.ResultReceiver;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,7 +12,6 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -28,6 +23,7 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.misc.DarkModeSharedPref;
 import com.example.imageprocessor.misc.SettingsConfig;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -38,7 +34,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import java.util.Locale;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -59,8 +54,19 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private Locale currentLocale;
 
+    DarkModeSharedPref darkModeSharedPref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // init dark mode settings on MainActivity
+        darkModeSharedPref = new DarkModeSharedPref(this);
+        if (darkModeSharedPref.loadDarkModeState()) {
+            // it must be NoActionBar since using toolbar
+            setTheme(R.style.DarkTheme_NoActionBar);
+        } else {
+            setTheme(R.style.AppTheme_NoActionBar);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate...");
@@ -93,8 +99,6 @@ public class MainActivity extends AppCompatActivity {
         settingsConfig = new SettingsConfig(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         currentLocale = getResources().getConfiguration().locale;
-
-        initDarkMode();
     }
 
     @Override
@@ -137,7 +141,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // init Dark Mode settings
+    /**
+     * @deprecated initDarkMode method
+     */
+    @Deprecated
     private void initDarkMode() {
         boolean darkModeOn = sharedPreferences.getBoolean("dark_mode", false);
         Log.i(TAG, "Current Dark Mode: " + darkModeOn);
