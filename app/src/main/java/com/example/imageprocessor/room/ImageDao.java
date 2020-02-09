@@ -14,13 +14,13 @@ import java.util.List;
 public interface ImageDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertImage(Image images);
+    void insertImages(Image... images);
 
     @Update
-    void updateImage(Image images);
+    void updateImages(Image... images);
 
     @Delete
-    void deleteImage(Image images);
+    void deleteImages(Image... images);
 
     @Query("SELECT * FROM image WHERE imageUri = :imageUri LIMIT 1")
     LiveData<List<Image>> findImageByUri(String imageUri);

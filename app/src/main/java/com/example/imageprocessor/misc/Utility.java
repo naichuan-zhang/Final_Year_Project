@@ -1,6 +1,11 @@
 package com.example.imageprocessor.misc;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -8,12 +13,25 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.view.View;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
 
 public class Utility {
+
+    private final static String[] cameraPermissions = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     public static Bitmap fixImageOrientation(Context context, Bitmap bitmap,
                                              String imageUri, String imageFrom) throws IOException {
@@ -102,5 +120,41 @@ public class Utility {
             if (cursor != null)
                 cursor.close();
         }
+    }
+
+    public static boolean checkAndAskCameraPermissions(Context context, Activity activity) {
+        List<String> permissionsNeeded = new ArrayList<>();
+        for (String permission : cameraPermissions) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
+                permissionsNeeded.add(permission);
+        }
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(activity,
+                    permissionsNeeded.toArray(new String[permissionsNeeded.size()]),
+                    Constants.REQUEST_PERMISSIONS);
+            return false;
+        }
+        return true;
+    }
+
+    public static String getCurrentDateTime() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return formatter.format(calendar.getTime());
+    }
+
+    public static AlertDialog showAlertDialog(Context context, String title, String message,
+                                       String positiveText, DialogInterface.OnClickListener positiveListener,
+                                       String negativeText, DialogInterface.OnClickListener negativeListener,
+                                       boolean isCancelable) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title)
+                .setCancelable(isCancelable)
+                .setMessage(message)
+                .setPositiveButton(positiveText, positiveListener)
+                .setNegativeButton(negativeText,negativeListener);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        return dialog;
     }
 }

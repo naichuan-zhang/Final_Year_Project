@@ -18,16 +18,16 @@ public class ImageRepository {
         allImages = imageDao.getAllImages();
     }
 
-    public void insertImage(Image image) {
-        new InsertImageAsyncTask(imageDao).execute(image);
+    public void insertImages(Image... images) {
+        new InsertImageAsyncTask(imageDao).execute(images);
     }
 
-    public void updateImage(Image image) {
-        new UpdateImageAsyncTask(imageDao).execute(image);
+    public void updateImages(Image... images) {
+        new UpdateImageAsyncTask(imageDao).execute(images);
     }
 
-    public void deleteImage(Image image) {
-        new DeleteImageAsyncTask(imageDao).execute(image);
+    public void deleteImages(Image... images) {
+        new DeleteImageAsyncTask(imageDao).execute(images);
     }
 
     // TODO: NOT SURE IF IT WORKS!!!
@@ -52,7 +52,7 @@ public class ImageRepository {
 
         @Override
         protected Void doInBackground(Image... images) {
-            imageDao.insertImage(images[0]);
+            imageDao.insertImages(images);
             return null;
         }
     }
@@ -66,7 +66,7 @@ public class ImageRepository {
 
         @Override
         protected Void doInBackground(Image... images) {
-            imageDao.updateImage(images[0]);
+            imageDao.updateImages(images);
             return null;
         }
     }
@@ -80,12 +80,10 @@ public class ImageRepository {
 
         @Override
         protected Void doInBackground(Image... images) {
-            imageDao.deleteImage(images[0]);
+            imageDao.deleteImages(images);
             return null;
         }
     }
-
-
 
     private static class DeleteAllImagesAsyncTask extends AsyncTask<Void, Void, Void> {
         private ImageDao imageDao;

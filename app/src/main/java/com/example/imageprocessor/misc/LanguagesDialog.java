@@ -28,6 +28,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Reference:
+ *      @link https://www.javarticles.com/2015/08/android-change-locale-dynamically.html
+ */
 public class LanguagesDialog extends DialogFragment {
 
     @NonNull
@@ -75,9 +79,12 @@ public class LanguagesDialog extends DialogFragment {
                 settings.edit().putString(SettingsFragment.LANGUAGE_SETTING, localeString).apply();
 
                 Intent refresh = new Intent(getActivity(), Objects.requireNonNull(getActivity()).getClass());
+                // For smooth transition
+                getActivity().overridePendingTransition(0, 0);
                 startActivity(refresh);
                 getActivity().setResult(SettingsFragment.LANGUAGE_CHANGED);
                 getActivity().finish();
+                getActivity().overridePendingTransition(0, 0);
             }
         });
 

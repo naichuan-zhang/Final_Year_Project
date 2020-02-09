@@ -21,19 +21,25 @@ public class Image {
     @ColumnInfo(name = "imageUri")
     private String imageUri;
 
+    // 1 -> gallery image
+    // 2 -> camera image
+    @ColumnInfo(name = "imageSource")
+    private int imageSource;
 
-    public Image(int imageID, String imageName, String imageDate, String imageUri) {
+    public Image(int imageID, String imageName, String imageDate, String imageUri, int imageSource) {
         this.imageID = imageID;
         this.imageName = imageName;
         this.imageDate = imageDate;
         this.imageUri = imageUri;
+        this.imageSource = imageSource;
     }
 
     @Ignore
-    public Image(String imageName, String imageDate, String imageUri) {
+    public Image(String imageName, String imageDate, String imageUri, int imageSource) {
         this.imageName = imageName;
         this.imageDate = imageDate;
         this.imageUri = imageUri;
+        this.imageSource = imageSource;
     }
 
     public int getImageID() {
@@ -50,5 +56,9 @@ public class Image {
 
     public String getImageUri() {
         return imageUri;
+    }
+
+    public int getImageSource() {
+        return imageSource;
     }
 }

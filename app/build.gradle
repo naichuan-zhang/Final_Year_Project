@@ -71,5 +71,10 @@ dependencies {
     //noinspection GradleDependency
     implementation "androidx.room:room-runtime:$room_version"
     // TODO: This might occur <Cause: unable to find valid certification path to requested target>
-//    annotationProcessor "androidx.room:room-compiler:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'io.supercharge:shimmerlayout:2.1.0'
+    implementation 'com.github.chrisbanes.photoview:library:1.2.4'
 }
