@@ -52,7 +52,7 @@ dependencies {
 
     // navigation
     // TODO: Room - keep 2.2.0 version!
-    def navigation_version = "2.1.0"
+    def navigation_version = "2.2.0"
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //noinspection GradleDependency
     implementation "androidx.navigation:navigation-fragment:$navigation_version"

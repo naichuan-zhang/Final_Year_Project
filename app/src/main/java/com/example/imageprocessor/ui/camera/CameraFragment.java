@@ -17,7 +17,11 @@ import androidx.navigation.Navigation;
 
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.misc.Constants;
+import com.example.imageprocessor.misc.Utility;
+import com.example.imageprocessor.room.Image;
+import com.example.imageprocessor.room.ImageViewModel;
 
+import java.io.File;
 import java.util.Objects;
 
 import static android.app.Activity.RESULT_OK;
@@ -65,7 +69,7 @@ public class CameraFragment extends Fragment implements ICameraFragment {
 
                 // add picture to gallery
                 addPictureToGallery(uri);
-                saveImageToDatabase();
+                saveImageToDatabase(uri.toString());
 
                 // redirect to PreviewFragment
                 Navigation.findNavController(root).navigate(R.id.action_nav_camera_to_previewFragment/*, bundle */ );
@@ -73,8 +77,13 @@ public class CameraFragment extends Fragment implements ICameraFragment {
         }
     }
 
-    private void saveImageToDatabase() {
-        // TODO: save image to database
+    private void saveImageToDatabase(String imageUri) {
+        String imageDate = Utility.getCurrentDateTime();
+        String imageName = new File(imageUri).getName();
+        int imageSource = 2;        // from camera
+        Image image = new Image(imageName, imageDate, imageUri, imageSource);
+        ImageViewModel imageViewModel = ViewModelProviders.of(this).get(ImageViewModel.class);
+        imageViewModel.insertImages(image);
     }
 
     @Override
