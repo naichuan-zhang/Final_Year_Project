@@ -40,8 +40,25 @@
     <fragment
         android:id="@+id/previewFragment"
         android:name="com.example.imageprocessor.ui.preview.PreviewFragment"
-        android:label="Preview"
-        tools:layout="@layout/preview_fragment" />
+        android:label="@string/preview"
+        tools:layout="@layout/preview_fragment">
+        <action
+            android:id="@+id/action_previewFragment_to_editFragment"
+            app:destination="@id/editFragment" />
+        <action
+            android:id="@+id/action_previewFragment_to_detectFragment"
+            app:destination="@id/detectFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detectFragment"
+        android:name="com.example.imageprocessor.ui.detect.DetectFragment"
+        android:label="@string/detect"
+        tools:layout="@layout/detect_fragment" />
+    <fragment
+        android:id="@+id/editFragment"
+        android:name="com.example.imageprocessor.ui.edit.EditFragment"
+        android:label="@string/edit"
+        tools:layout="@layout/edit_fragment" />
 
     <!--    <fragment-->
 <!--        android:id="@+id/nav_settings"-->

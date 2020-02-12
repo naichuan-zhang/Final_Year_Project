@@ -73,9 +73,12 @@ public class GalleryFragment extends Fragment implements IGalleryFragment {
                     // save image data to Room db
                     saveImageToDatabase(uri.toString());
 
-                    // TODO: create bundle
+                    Bundle bundle = new Bundle();
+                    bundle.putString("uri", uri.toString());
+                    bundle.putInt("from", 1);
+
                     // redirect to PreviewFragment
-                    Navigation.findNavController(root).navigate(R.id.action_nav_gallery_to_previewFragment);
+                    Navigation.findNavController(root).navigate(R.id.action_nav_gallery_to_previewFragment, bundle);
                 }
             }
         }

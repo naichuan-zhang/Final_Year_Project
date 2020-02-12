@@ -58,4 +58,7 @@
     <string name="device">此设备</string>
     <string name="permission_granted_message">该应用需要获取一些权限以此来正常运行</string>
     <string name="permission_denied_message">您已经拒绝了某些权限, 转到“设置”以授予所需的权限</string>
+    <string name="preview">预览</string>
+    <string name="edit">编辑</string>
+    <string name="detect">检测</string>
 </resources>

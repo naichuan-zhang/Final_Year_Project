@@ -58,4 +58,7 @@
     <string name="device">This Device</string>
     <string name="permission_granted_message">This app needs some permissions to work without any problems</string>
     <string name="permission_denied_message">You have denied some permissions. Go to Settings to grant permissions needed</string>
+    <string name="preview">Preview</string>
+    <string name="edit">Edit</string>
+    <string name="detect">Detect</string>
 </resources>
