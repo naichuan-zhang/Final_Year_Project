@@ -71,6 +71,7 @@ public class CameraFragment extends Fragment implements ICameraFragment {
                 addPictureToGallery(uri);
                 saveImageToDatabase(uri.toString());
 
+                // TODO: Create bundle
                 // redirect to PreviewFragment
                 Navigation.findNavController(root).navigate(R.id.action_nav_camera_to_previewFragment/*, bundle */ );
             }

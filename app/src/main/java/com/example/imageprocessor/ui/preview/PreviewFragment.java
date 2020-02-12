@@ -32,7 +32,7 @@ public class PreviewFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(this).get(PreviewViewModel.class);
-        // TODO: Use the ViewModel
+        // TODO: get Bundle here
     }
 
 }

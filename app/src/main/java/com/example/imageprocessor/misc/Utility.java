@@ -33,6 +33,10 @@ public class Utility {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    private final static String[] galleryPermissions = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
     public static Bitmap fixImageOrientation(Context context, Bitmap bitmap,
                                              String imageUri, String imageFrom) throws IOException {
         if (imageFrom.equalsIgnoreCase("GALLERY")) {
@@ -125,6 +129,21 @@ public class Utility {
     public static boolean checkAndAskCameraPermissions(Context context, Activity activity) {
         List<String> permissionsNeeded = new ArrayList<>();
         for (String permission : cameraPermissions) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
+                permissionsNeeded.add(permission);
+        }
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(activity,
+                    permissionsNeeded.toArray(new String[permissionsNeeded.size()]),
+                    Constants.REQUEST_PERMISSIONS);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean checkAndAskGalleryPermissions(Context context, Activity activity) {
+        List<String> permissionsNeeded = new ArrayList<>();
+        for (String permission : galleryPermissions) {
             if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
                 permissionsNeeded.add(permission);
         }
