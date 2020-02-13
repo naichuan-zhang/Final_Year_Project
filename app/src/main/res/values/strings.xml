@@ -61,4 +61,6 @@
     <string name="preview">Preview</string>
     <string name="edit">Edit</string>
     <string name="detect">Detect</string>
+    <string name="history_details">Details</string>
+    <string name="history_delete">Delete</string>
 </resources>

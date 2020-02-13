@@ -45,7 +45,6 @@ public class PreviewFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.preview_fragment, container, false);
         previewImageView = root.findViewById(R.id.previewImageView);
-        buttonEdit = root.findViewById(R.id.buttonEdit);
         buttonDetect = root.findViewById(R.id.buttonDetect);
         return root;
     }
@@ -71,13 +70,6 @@ public class PreviewFragment extends Fragment {
         }
 
         previewImageView.setImageBitmap(imageBitmap);
-
-        buttonEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(root).navigate(R.id.action_previewFragment_to_editFragment);
-            }
-        });
 
         buttonDetect.setOnClickListener(new View.OnClickListener() {
             @Override

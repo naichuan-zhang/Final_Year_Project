@@ -61,4 +61,6 @@
     <string name="preview">预览</string>
     <string name="edit">编辑</string>
     <string name="detect">检测</string>
+    <string name="history_details">查看</string>
+    <string name="history_delete">删除</string>
 </resources>
