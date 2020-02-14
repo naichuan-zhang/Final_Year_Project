@@ -63,4 +63,6 @@
     <string name="detect">Detect</string>
     <string name="history_details">Details</string>
     <string name="history_delete">Delete</string>
+    <string name="loading">Loading…</string>
+    <string name="no_loading">All has been loaded</string>
 </resources>
