@@ -17,6 +17,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -26,7 +29,10 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.misc.FootViewStatus;
+import com.example.imageprocessor.misc.Utility;
 import com.example.imageprocessor.room.Image;
+import com.example.imageprocessor.room.ImageViewModel;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,26 +47,34 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     private FootViewStatus footerViewStatus = FootViewStatus.CAN_LOAD_MORE;
 
     private Context context;
+    private View itemView;
+    private View view;
+    private Fragment fragment;
+    private HistoryViewHolder holder;
+    private ImageViewModel imageViewModel;
     private List<Image> images = new ArrayList<>();
 
-    public HistoryAdapter(Context context) {
+    public HistoryAdapter(Context context, Fragment fragment, View view, ImageViewModel imageViewModel) {
         this.context = context;
+        this.fragment = fragment;
+        this.view = view;
+        this.imageViewModel = imageViewModel;
     }
 
     @NonNull
     @Override
     public HistoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == FOOTER_VIEW_TYPE) {
-            View itemView = LayoutInflater.from(parent.getContext())
+            itemView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.history_footer, parent, false);
             footerViewStatus = FootViewStatus.NO_MORE;
-            return new HistoryViewHolder(itemView);
         } else {
-            View itemView = LayoutInflater.from(parent.getContext())
+            itemView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.history_cell, parent, false);
             footerViewStatus = FootViewStatus.CAN_LOAD_MORE;
-            return new HistoryViewHolder(itemView);
         }
+        holder = new HistoryViewHolder(itemView);
+        return holder;
     }
 
     @Override
@@ -172,14 +186,37 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             switch (item.getItemId()) {
+                case R.id.action_history_view:
+                    Log.i(TAG, "history view clicked");
+                    Navigation.findNavController(itemView).navigate(R.id.action_nav_history_to_photoViewFragment);
+                    return true;
                 case R.id.action_history_details:
                     Log.i(TAG, "history details clicked");
+                    // TODO: details ...
+                    return true;
+                case R.id.action_history_share:
+                    Log.i(TAG, "history share clicked");
+                    // TODO: share ...
                     return true;
                 case R.id.action_history_delete:
                     Log.i(TAG, "history delete clicked");
+                    // TODO: delete - GET NULL !!!!
+                    Image deletedImage = getImageAt(holder.getAdapterPosition());
+                    imageViewModel.deleteImages(deletedImage);
+                    showUndoSnackbar(deletedImage);
                     return true;
             }
             return false;
         }
+    }
+
+    private void showUndoSnackbar(final Image deletedImage) {
+        Snackbar snackbar = Snackbar.make(view, R.string.snack_bar_text, Snackbar.LENGTH_LONG);
+        snackbar.setAction(R.string.snack_bar_undo, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageViewModel.insertImages(deletedImage);
+            }
+        });
     }
 }

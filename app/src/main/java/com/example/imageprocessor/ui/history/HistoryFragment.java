@@ -2,6 +2,7 @@ package com.example.imageprocessor.ui.history;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.room.Image;
@@ -22,11 +24,14 @@ import java.util.List;
 
 public class HistoryFragment extends Fragment {
 
+    private final static String TAG = "History Fragment: ";
+
     private HistoryViewModel historyViewModel;
     private View root;
 
     private RecyclerView recyclerView;
     private HistoryAdapter historyAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private Context context;
     private ImageViewModel imageViewModel;
 
@@ -47,23 +52,34 @@ public class HistoryFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(historyAdapter);
 
-        // TODO: Change here ..............................................................
+        swipeRefreshLayout = root.findViewById(R.id.swipeRefreshLayoutHistory);
+        swipeRefreshLayout.setRefreshing(true);
+
         imageViewModel =
                 ViewModelProviders.of(this).get(ImageViewModel.class);
         imageViewModel.getAllImages().observe(getViewLifecycleOwner(), new Observer<List<Image>>() {
             @Override
             public void onChanged(List<Image> images) {
-                // update RecyclerView ...
+                // update RecyclerView
                 historyAdapter.setImages(images);
             }
         });
-        // ................................................................................
+
+        swipeRefreshLayout.setRefreshing(false);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.i(TAG, "swipeRefreshLayout -> onRefresh");
+                // TODO: Refresh ...
+            }
+        });
     }
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         this.context = context;
-        historyAdapter = new HistoryAdapter(context);
+        historyAdapter = new HistoryAdapter(context, this, getView(), imageViewModel);
     }
 }
