@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.room.Image;
 
@@ -56,7 +57,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             }
         });
         // TODO: Add ShimmerLayout features here !!!!!!!!!!!!!!!
-        holder.imageViewHistory.setImageURI(Uri.parse(image.getImageUri()));
+//        holder.imageViewHistory.setImageURI(Uri.parse(image.getImageUri()));
+//        Glide.with(holder.itemView).load(Uri.parse(image.getImageUri())).into(holder.imageViewHistory);
     }
 
     @Override
