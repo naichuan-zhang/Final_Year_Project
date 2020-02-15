@@ -92,15 +92,14 @@ public class PhotoViewFragment extends Fragment {
     private void addPictureToGallery() {
         // check and ask permissions needed to save a picture
         if (Utility.checkAndAskGalleryPermissions(getContext(), getActivity())) {
-            // TODO: ERROR -> Sometimes crashes !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             PhotoViewAdapter.PhotoViewViewHolder holder = photoViewAdapter.getHolder();
             BitmapDrawable drawable = (BitmapDrawable) Objects.requireNonNull(holder).photoView.getDrawable();
             Bitmap bitmap = drawable.getBitmap();
             if (MediaStore.Images.Media.insertImage(requireContext().getContentResolver(),
-                    bitmap, "", "") == null) {
-                Toast.makeText(requireContext(), "Failed", Toast.LENGTH_SHORT).show();
+                    bitmap, "", "") != null) {
+                Toast.makeText(requireContext(), getString(R.string.save_success), Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(requireContext(), "Success", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT).show();
             }
         }
     }

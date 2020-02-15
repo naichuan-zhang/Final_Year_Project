@@ -68,4 +68,6 @@
     <string name="no_loading">All has been loaded</string>
     <string name="history_share">Share</string>
     <string name="photo_tag">%d / %d</string>
+    <string name="save_success">Save successfully</string>
+    <string name="save_failed">Save failed</string>
 </resources>

@@ -68,4 +68,6 @@
     <string name="no_loading">加载完毕</string>
     <string name="history_share">分享</string>
     <string name="photo_tag">%d / %d</string>
+    <string name="save_success">保存成功</string>
+    <string name="save_failed">保存失败</string>
 </resources>

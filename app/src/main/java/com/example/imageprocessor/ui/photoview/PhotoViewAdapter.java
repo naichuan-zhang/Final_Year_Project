@@ -38,7 +38,6 @@ public class PhotoViewAdapter extends ListAdapter<Image, PhotoViewAdapter.PhotoV
                 .load(getItem(position).getImageUri())
                 .placeholder(R.drawable.image_placeholder)
                 .into(holder.photoView);
-        // TODO: ERROR -> Sometimes crashes !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         setHolder(holder);
     }
 
@@ -53,7 +52,7 @@ public class PhotoViewAdapter extends ListAdapter<Image, PhotoViewAdapter.PhotoV
             return oldItem.getImageID() == newItem.getImageID();
         }
     };
-    // TODO: ERROR -> Sometimes crashes !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     public PhotoViewViewHolder getHolder() {
         return holder;
     }
