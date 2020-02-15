@@ -1,11 +1,7 @@
 package com.example.imageprocessor.ui.history;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -20,7 +16,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -203,10 +198,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             switch (item.getItemId()) {
                 case R.id.action_history_view:
                     Log.i(TAG, "history view clicked");
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelableArrayList("photo_list", (ArrayList<? extends Parcelable>) images);
-                    bundle.putInt("photo_position", position);
-                    Navigation.findNavController(itemView).navigate(R.id.action_nav_history_to_photoViewFragment, bundle);
+                    fragment.viewImage(position, images);
                     return true;
                 case R.id.action_history_share:
                     Log.i(TAG, "history share clicked");
