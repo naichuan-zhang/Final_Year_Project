@@ -1,12 +1,15 @@
 package com.example.imageprocessor.room;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity
-public class Image {
+public class Image implements Parcelable {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "imageID")
@@ -41,6 +44,40 @@ public class Image {
         this.imageUri = imageUri;
         this.imageSource = imageSource;
     }
+
+    protected Image(Parcel in) {
+        imageID = in.readInt();
+        imageName = in.readString();
+        imageDate = in.readString();
+        imageUri = in.readString();
+        imageSource = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(imageID);
+        dest.writeString(imageName);
+        dest.writeString(imageDate);
+        dest.writeString(imageUri);
+        dest.writeInt(imageSource);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Image> CREATOR = new Creator<Image>() {
+        @Override
+        public Image createFromParcel(Parcel in) {
+            return new Image(in);
+        }
+
+        @Override
+        public Image[] newArray(int size) {
+            return new Image[size];
+        }
+    };
 
     public int getImageID() {
         return imageID;

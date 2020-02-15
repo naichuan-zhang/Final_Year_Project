@@ -67,4 +67,5 @@
     <string name="loading">Loading…</string>
     <string name="no_loading">All has been loaded</string>
     <string name="history_share">Share</string>
+    <string name="photo_tag">%d / %d</string>
 </resources>

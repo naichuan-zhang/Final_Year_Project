@@ -67,8 +67,6 @@ public class CameraFragment extends Fragment implements ICameraFragment {
                 final Uri uri = cameraImpl.getUri();
                 Log.i(TAG, uri.toString());
 
-                // add picture to gallery
-                addPictureToGallery(uri);
                 saveImageToDatabase(uri.toString());
 
                 Bundle bundle = new Bundle();
@@ -94,11 +92,5 @@ public class CameraFragment extends Fragment implements ICameraFragment {
     public void startOtherActivity(Intent intent, int requestCode) {
         if (intent.resolveActivity(Objects.requireNonNull(getActivity()).getPackageManager()) != null)
             startActivityForResult(intent, requestCode);
-    }
-
-    private void addPictureToGallery(Uri uri) {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        mediaScanIntent.setData(uri);
-        Objects.requireNonNull(getContext()).sendBroadcast(mediaScanIntent);
     }
 }

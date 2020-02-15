@@ -1,22 +1,40 @@
 package com.example.imageprocessor.ui.photoview;
 
-import androidx.lifecycle.ViewModelProviders;
-
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.room.Image;
+
+import java.util.List;
+import java.util.Objects;
 
 public class PhotoViewFragment extends Fragment {
 
-    private PhotoViewViewModel mViewModel;
+    private final static String TAG = "PhotoViewFragment: ";
+
+    private View root;
+
+    private PhotoViewViewModel photoViewViewModel;
+    private ViewPager2 viewPager2;
+    private PhotoViewAdapter photoViewAdapter;
+    private TextView photoTag;
+    private ImageView saveButton;
+    private List<Image> imageList;
+    private int currentPosition;
 
     public static PhotoViewFragment newInstance() {
         return new PhotoViewFragment();
@@ -25,14 +43,56 @@ public class PhotoViewFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.photo_view_fragment, container, false);
+        root = inflater.inflate(R.layout.photo_view_fragment, container, false);
+        return root;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(PhotoViewViewModel.class);
-        // TODO: Use the ViewModel
+        photoViewViewModel = ViewModelProviders.of(this).get(PhotoViewViewModel.class);
+
+        // init imageList
+        imageList = Objects.requireNonNull(getArguments()).getParcelableArrayList("photo_list");
+        Log.i(TAG, Objects.requireNonNull(imageList).toString());
+
+        currentPosition = getArguments().getInt("photo_position");
+
+        photoViewAdapter = new PhotoViewAdapter();
+        photoViewAdapter.submitList(imageList);
+
+        viewPager2 = root.findViewById(R.id.viewPager2);
+        viewPager2.setAdapter(photoViewAdapter);
+        photoTag = root.findViewById(R.id.photoTag);
+        saveButton = root.findViewById(R.id.saveButton);
+
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                photoTag.setText(getString(R.string.photo_tag, position + 1, imageList.size()));
+            }
+        });
+        Toast.makeText(getContext(), "" + currentPosition, Toast.LENGTH_SHORT).show();
+        viewPager2.setCurrentItem(currentPosition, false);
+        viewPager2.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "saveButton -> onClick");
+                addPictureToGallery();
+            }
+        });
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+    }
+
+    private void addPictureToGallery() {
+        // TODO: add pic to gallery
+    }
 }

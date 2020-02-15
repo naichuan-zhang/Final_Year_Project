@@ -2,7 +2,8 @@ package com.example.imageprocessor.ui.history;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -17,8 +18,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,10 +28,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.misc.FootViewStatus;
-import com.example.imageprocessor.misc.Utility;
 import com.example.imageprocessor.room.Image;
-import com.example.imageprocessor.room.ImageViewModel;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,36 +38,39 @@ import io.supercharge.shimmerlayout.ShimmerLayout;
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder> {
 
     private final static String TAG = "History Adapter: ";
-    public final static int NORMAL_VIEW_TYPE = 0;
-    public final static int FOOTER_VIEW_TYPE = 1;
+    private final static int NORMAL_VIEW_TYPE = 0;
+    private final static int FOOTER_VIEW_TYPE = 1;
     private FootViewStatus footerViewStatus = FootViewStatus.CAN_LOAD_MORE;
 
     private Context context;
     private View itemView;
     private View view;
-    private Fragment fragment;
+    private HistoryFragment fragment;
     private HistoryViewHolder holder;
-    private ImageViewModel imageViewModel;
     private List<Image> images = new ArrayList<>();
 
-    public HistoryAdapter(Context context, Fragment fragment, View view, ImageViewModel imageViewModel) {
+    public HistoryAdapter(Context context, HistoryFragment fragment, View view) {
         this.context = context;
         this.fragment = fragment;
         this.view = view;
-        this.imageViewModel = imageViewModel;
     }
 
     @NonNull
     @Override
     public HistoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == FOOTER_VIEW_TYPE) {
+        if (getItemCount() == 0) {
             itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.history_footer, parent, false);
-            footerViewStatus = FootViewStatus.NO_MORE;
+                    .inflate(R.layout.no_history, parent, false);
         } else {
-            itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.history_cell, parent, false);
-            footerViewStatus = FootViewStatus.CAN_LOAD_MORE;
+            if (viewType == FOOTER_VIEW_TYPE) {
+                itemView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.history_footer, parent, false);
+                footerViewStatus = FootViewStatus.NO_MORE;
+            } else {
+                itemView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.history_cell, parent, false);
+                footerViewStatus = FootViewStatus.CAN_LOAD_MORE;
+            }
         }
         holder = new HistoryViewHolder(itemView);
         return holder;
@@ -158,6 +157,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     }
 
     class HistoryViewHolder extends RecyclerView.ViewHolder {
+        // ------------ No history -----------
+        private TextView textViewNoHistory;
+        // ------------ No history -----------
+
         // ------------ Normal ----------------
         private TextView textViewImageDate;
         private ImageView imageViewHistory;
@@ -172,6 +175,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
         HistoryViewHolder(@NonNull View itemView) {
             super(itemView);
+
+            textViewNoHistory = itemView.findViewById(R.id.textViewNoHistory);
+
             textViewImageDate = itemView.findViewById(R.id.textViewImageDate);
             imageViewHistory = itemView.findViewById(R.id.imageViewHistory);
             imageButtonShowDetails = itemView.findViewById(R.id.imageButtonShowDetails);
@@ -182,41 +188,27 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         }
     }
 
+    // TODO: ERROR -> get position !!!!!!!!!!!!!!!!!!!!!!!!!!!!
     class HistoryMenuItemClickListener implements PopupMenu.OnMenuItemClickListener {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_history_view:
                     Log.i(TAG, "history view clicked");
-                    Navigation.findNavController(itemView).navigate(R.id.action_nav_history_to_photoViewFragment);
-                    return true;
-                case R.id.action_history_details:
-                    Log.i(TAG, "history details clicked");
-                    // TODO: details ...
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelableArrayList("photo_list", (ArrayList<? extends Parcelable>) images);
+                    bundle.putInt("photo_position", holder.getAdapterPosition());
+                    Navigation.findNavController(itemView).navigate(R.id.action_nav_history_to_photoViewFragment, bundle);
                     return true;
                 case R.id.action_history_share:
                     Log.i(TAG, "history share clicked");
-                    // TODO: share ...
                     return true;
                 case R.id.action_history_delete:
                     Log.i(TAG, "history delete clicked");
-                    // TODO: delete - GET NULL !!!!
-                    Image deletedImage = getImageAt(holder.getAdapterPosition());
-                    imageViewModel.deleteImages(deletedImage);
-                    showUndoSnackbar(deletedImage);
+                    fragment.deleteImage(getImageAt(holder.getAdapterPosition()));
                     return true;
             }
             return false;
         }
-    }
-
-    private void showUndoSnackbar(final Image deletedImage) {
-        Snackbar snackbar = Snackbar.make(view, R.string.snack_bar_text, Snackbar.LENGTH_LONG);
-        snackbar.setAction(R.string.snack_bar_undo, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                imageViewModel.insertImages(deletedImage);
-            }
-        });
     }
 }

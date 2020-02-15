@@ -19,8 +19,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.room.Image;
 import com.example.imageprocessor.room.ImageViewModel;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
+import java.util.Objects;
 
 public class HistoryFragment extends Fragment {
 
@@ -39,6 +41,8 @@ public class HistoryFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         historyViewModel =
                 ViewModelProviders.of(this).get(HistoryViewModel.class);
+        imageViewModel =
+                ViewModelProviders.of(this).get(ImageViewModel.class);
         root = inflater.inflate(R.layout.fragment_history, container, false);
         return root;
     }
@@ -55,8 +59,6 @@ public class HistoryFragment extends Fragment {
         swipeRefreshLayout = root.findViewById(R.id.swipeRefreshLayoutHistory);
         swipeRefreshLayout.setRefreshing(true);
 
-        imageViewModel =
-                ViewModelProviders.of(this).get(ImageViewModel.class);
         imageViewModel.getAllImages().observe(getViewLifecycleOwner(), new Observer<List<Image>>() {
             @Override
             public void onChanged(List<Image> images) {
@@ -80,6 +82,21 @@ public class HistoryFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         this.context = context;
-        historyAdapter = new HistoryAdapter(context, this, getView(), imageViewModel);
+        historyAdapter = new HistoryAdapter(context, this, getView());
+    }
+
+    void deleteImage(Image deletedImage) {
+        imageViewModel.deleteImages(deletedImage);
+        showUndoSnackbar(deletedImage);
+    }
+
+    private void showUndoSnackbar(final Image deletedImage) {
+        Snackbar snackbar = Snackbar.make(Objects.requireNonNull(getView()), R.string.snack_bar_text, Snackbar.LENGTH_LONG);
+        snackbar.setAction(R.string.snack_bar_undo, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageViewModel.insertImages(deletedImage);
+            }
+        });
     }
 }
