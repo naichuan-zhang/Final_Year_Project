@@ -18,6 +18,8 @@ import uk.co.senab.photoview.PhotoView;
 
 public class PhotoViewAdapter extends ListAdapter<Image, PhotoViewAdapter.PhotoViewViewHolder> {
 
+    private PhotoViewViewHolder holder;
+
     public PhotoViewAdapter() {
         super(DIFF_CALLBACK);
     }
@@ -36,6 +38,8 @@ public class PhotoViewAdapter extends ListAdapter<Image, PhotoViewAdapter.PhotoV
                 .load(getItem(position).getImageUri())
                 .placeholder(R.drawable.image_placeholder)
                 .into(holder.photoView);
+        // TODO: ERROR -> Sometimes crashes !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        setHolder(holder);
     }
 
     private static DiffUtil.ItemCallback<Image> DIFF_CALLBACK = new DiffUtil.ItemCallback<Image>() {
@@ -49,10 +53,18 @@ public class PhotoViewAdapter extends ListAdapter<Image, PhotoViewAdapter.PhotoV
             return oldItem.getImageID() == newItem.getImageID();
         }
     };
+    // TODO: ERROR -> Sometimes crashes !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    public PhotoViewViewHolder getHolder() {
+        return holder;
+    }
+
+    public void setHolder(PhotoViewViewHolder holder) {
+        this.holder = holder;
+    }
 
     class PhotoViewViewHolder extends RecyclerView.ViewHolder {
 
-        private PhotoView photoView;
+        PhotoView photoView;
 
         PhotoViewViewHolder(@NonNull View itemView) {
             super(itemView);

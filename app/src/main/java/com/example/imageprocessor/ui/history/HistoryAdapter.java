@@ -77,7 +77,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final HistoryViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final HistoryViewHolder holder, final int position) {
         if (position == getItemCount()) {
             Log.i(TAG, "onBindViewHolder -> footer view type");
             switch (footerViewStatus) {
@@ -101,7 +101,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "show popup menu");
-                showPopupMenu(holder.imageButtonShowDetails);
+                showPopupMenu(holder.imageButtonShowDetails, position);
             }
         });
         holder.shimmerLayoutHistory.setShimmerColor(0x55FFFFFF);
@@ -148,11 +148,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         return images.isEmpty();
     }
 
-    private void showPopupMenu(View view) {
+    private void showPopupMenu(View view, int position) {
         PopupMenu popupMenu = new PopupMenu(context, view);
         MenuInflater inflater = popupMenu.getMenuInflater();
         inflater.inflate(R.menu.menu_history, popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(new HistoryMenuItemClickListener());
+        popupMenu.setOnMenuItemClickListener(new HistoryMenuItemClickListener(position));
         popupMenu.show();
     }
 
@@ -188,8 +188,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         }
     }
 
-    // TODO: ERROR -> get position !!!!!!!!!!!!!!!!!!!!!!!!!!!!
     class HistoryMenuItemClickListener implements PopupMenu.OnMenuItemClickListener {
+
+        private int position;
+
+        HistoryMenuItemClickListener(int position) {
+            this.position = position;
+        }
+
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             switch (item.getItemId()) {
@@ -197,7 +203,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
                     Log.i(TAG, "history view clicked");
                     Bundle bundle = new Bundle();
                     bundle.putParcelableArrayList("photo_list", (ArrayList<? extends Parcelable>) images);
-                    bundle.putInt("photo_position", holder.getAdapterPosition());
+                    bundle.putInt("photo_position", position);
                     Navigation.findNavController(itemView).navigate(R.id.action_nav_history_to_photoViewFragment, bundle);
                     return true;
                 case R.id.action_history_share:
@@ -205,7 +211,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
                     return true;
                 case R.id.action_history_delete:
                     Log.i(TAG, "history delete clicked");
-                    fragment.deleteImage(getImageAt(holder.getAdapterPosition()));
+                    fragment.deleteImage(getImageAt(position));
                     return true;
             }
             return false;
