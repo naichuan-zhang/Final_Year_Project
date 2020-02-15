@@ -1,7 +1,9 @@
 package com.example.imageprocessor.ui.history;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -208,6 +210,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
                     return true;
                 case R.id.action_history_share:
                     Log.i(TAG, "history share clicked");
+                    fragment.shareImage(getImageAt(position));
                     return true;
                 case R.id.action_history_delete:
                     Log.i(TAG, "history delete clicked");

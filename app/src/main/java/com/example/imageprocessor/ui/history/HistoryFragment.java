@@ -1,6 +1,8 @@
 package com.example.imageprocessor.ui.history;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -85,6 +87,14 @@ public class HistoryFragment extends Fragment {
         historyAdapter = new HistoryAdapter(context, this, getView());
     }
 
+    void shareImage(Image image) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("image/*");
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(image.getImageUri()));
+        startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.share_to)));
+    }
+
     void deleteImage(Image deletedImage) {
         imageViewModel.deleteImages(deletedImage);
         showUndoSnackbar(deletedImage);
@@ -97,6 +107,6 @@ public class HistoryFragment extends Fragment {
             public void onClick(View v) {
                 imageViewModel.insertImages(deletedImage);
             }
-        });
+        }).show();
     }
 }
