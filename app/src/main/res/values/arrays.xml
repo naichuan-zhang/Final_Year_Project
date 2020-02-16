@@ -15,4 +15,10 @@
         <item>en-US</item>
         <item>zh</item>
     </string-array>
+
+    <string-array name="shape_array">
+        <item>Circle</item>
+        <item>Rectangle</item>
+        <item>Ellipse</item>
+    </string-array>
 </resources>

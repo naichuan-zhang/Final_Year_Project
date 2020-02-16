@@ -44,6 +44,13 @@
             android:id="@+id/action_nav_history_to_previewFragment"
             app:destination="@id/previewFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/nav_about"
+        android:name="com.example.imageprocessor.ui.about.AboutFragment"
+        android:label="About"
+        tools:layout="@layout/fragment_about" />
+
     <fragment
         android:id="@+id/previewFragment"
         android:name="com.example.imageprocessor.ui.preview.PreviewFragment"
@@ -56,16 +63,19 @@
             android:id="@+id/action_previewFragment_to_detectFragment"
             app:destination="@id/detectFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/detectFragment"
         android:name="com.example.imageprocessor.ui.detect.DetectFragment"
         android:label="@string/detect"
         tools:layout="@layout/detect_fragment" />
+
     <fragment
         android:id="@+id/editFragment"
         android:name="com.example.imageprocessor.ui.edit.EditFragment"
         android:label="@string/edit"
         tools:layout="@layout/edit_fragment" />
+
     <fragment
         android:id="@+id/photoViewFragment"
         android:name="com.example.imageprocessor.ui.photoview.PhotoViewFragment"

@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +32,7 @@ public class PreviewFragment extends Fragment {
 
     private ImageView previewImageView;
     private Button buttonEdit;
+    private Spinner shapeSpinner;
     private Button buttonDetect;
 
     // 1 -> gallery, 2 -> camera
@@ -45,6 +48,7 @@ public class PreviewFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.preview_fragment, container, false);
         previewImageView = root.findViewById(R.id.previewImageView);
+        shapeSpinner = root.findViewById(R.id.shapeSpinner);
         buttonDetect = root.findViewById(R.id.buttonDetect);
         return root;
     }
@@ -64,12 +68,18 @@ public class PreviewFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         if (imageBitmap != null) {
             // TODO: do something
         }
-
         previewImageView.setImageBitmap(imageBitmap);
+
+        // init spinner
+        ArrayAdapter<CharSequence> spinnerAdapter =
+                ArrayAdapter.createFromResource(Objects.requireNonNull(getContext()), R.array.shape_array,
+                        android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        shapeSpinner.setAdapter(spinnerAdapter);
+
 
         buttonDetect.setOnClickListener(new View.OnClickListener() {
             @Override
