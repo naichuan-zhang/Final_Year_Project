@@ -120,6 +120,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
                     }
                 })
                 .into(holder.imageViewHistory);
+        holder.imageViewHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // redirect to PreviewFragment
+                fragment.redirectToPreview(getImageAt(position));
+            }
+        });
     }
 
     @Override

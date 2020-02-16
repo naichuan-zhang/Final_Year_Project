@@ -40,6 +40,9 @@
         <action
             android:id="@+id/action_nav_history_to_photoViewFragment"
             app:destination="@id/photoViewFragment" />
+        <action
+            android:id="@+id/action_nav_history_to_previewFragment"
+            app:destination="@id/previewFragment" />
     </fragment>
     <fragment
         android:id="@+id/previewFragment"

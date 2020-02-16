@@ -90,11 +90,20 @@ public class HistoryFragment extends Fragment {
         historyAdapter = new HistoryAdapter(context, this, getView());
     }
 
+    void redirectToPreview(Image image) {
+        String uriStr = image.getImageUri();
+        int from = image.getImageSource();
+        Bundle bundle = new Bundle();
+        bundle.putString("uri", uriStr);
+        bundle.putInt("from", from);
+        Navigation.findNavController(root).navigate(R.id.action_nav_history_to_previewFragment, bundle);
+    }
+
     void viewImage(int position, List<Image> images) {
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("photo_list", (ArrayList<? extends Parcelable>) images);
         bundle.putInt("photo_position", position);
-        Navigation.findNavController(Objects.requireNonNull(getView())).navigate(R.id.action_nav_history_to_photoViewFragment, bundle);
+        Navigation.findNavController(root).navigate(R.id.action_nav_history_to_photoViewFragment, bundle);
     }
 
     void shareImage(Image image) {
