@@ -17,6 +17,8 @@
     </string-array>
 
     <string-array name="shape_array">
+        <item>Auto</item>
+        <item>Line</item>
         <item>Circle</item>
         <item>Rectangle</item>
         <item>Ellipse</item>

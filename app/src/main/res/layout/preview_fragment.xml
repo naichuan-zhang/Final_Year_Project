@@ -7,6 +7,7 @@
     tools:context=".ui.preview.PreviewFragment" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -44,8 +45,7 @@
             app:layout_constraintEnd_toStartOf="@+id/buttonDetect"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/buttonEdit"
-            app:layout_constraintTop_toTopOf="@+id/buttonEdit"
-            />
+            app:layout_constraintTop_toTopOf="@+id/buttonEdit" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -66,5 +66,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/image_placeholder" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
