@@ -31,6 +31,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -150,6 +151,7 @@ public class PreviewFragment extends Fragment {
                 break;
             case "ellipse":
                 Log.i(TAG, "shape -> ellipse");
+                result = detectEllipses(srcBitmap);
                 break;
             default:
                 break;
@@ -160,13 +162,38 @@ public class PreviewFragment extends Fragment {
     private Object[] detectLines(Bitmap srcBitmap) {
         Mat src = openCVUtil.bitmapToMat(srcBitmap);
         Mat dst = openCVUtil.cloneMat(src);
-        return null;
+        openCVUtil.toGray(dst, dst);
+        Imgproc.Canny(dst, dst, 0, 200, 3, false);
+        Mat lines = new Mat();
+        Imgproc.HoughLinesP(dst, lines, 1, Math.PI / 180, 50, 10, 0);
+        // draw lines
+        for (int x = 0; x < lines.rows(); x++) {
+            double[] vec = lines.get(x, 0);
+            Point start = new Point(vec[0], vec[1]);
+            Point end = new Point(vec[2], vec[3]);
+            Imgproc.line(src, start, end, new Scalar(255, 0, 0), 3, Imgproc.LINE_4, 0);
+        }
+        return new Object[] {openCVUtil.matToBitmap(src, srcBitmap), ""};
     }
 
     private Object[] detectCircles(Bitmap srcBitmap) {
         Mat src = openCVUtil.bitmapToMat(srcBitmap);
         Mat dst = openCVUtil.cloneMat(src);
-        return null;
+        openCVUtil.toGray(dst, dst);
+        Imgproc.blur(dst, dst, new Size(7, 7), new Point(2, 2));
+        Mat circles = new Mat();
+        Imgproc.HoughCircles(dst, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 100, 100, 90, 0, 1000);
+        if (circles.cols() > 0) {
+            for (int x = 0; x < Math.min(circles.cols(), 5); x++) {
+                double[] vec = circles.get(0, x);
+                Point center = new Point((int)vec[0], (int)vec[1]);
+                int radius = (int)vec[2];
+                // draw center point
+                Imgproc.circle(src, center, 3, new Scalar(255, 0, 0), 5);
+                Imgproc.circle(src, center, radius, new Scalar(255, 0, 0), 2);
+            }
+        }
+        return new Object[] {openCVUtil.matToBitmap(src, srcBitmap), ""};
     }
 
     private Object[] detectRectangles(Bitmap srcBitmap) {
@@ -212,10 +239,28 @@ public class PreviewFragment extends Fragment {
             }
         }
         String resultText = "Triangle: " + triangle + "\nRectangle: " + rectangle + "\nSquare: " + square + "\nPolygon: " + polygon;
-        Bitmap resultBitmap = openCVUtil.matToBitmap(dst, srcBitmap);
-        return new Object[] {resultBitmap, resultText};
+        return new Object[] {openCVUtil.matToBitmap(src, srcBitmap), resultText};
     }
 
+    // TODO: TO BE FINISHED !!!!!!!!!!!!
+    private Object[] detectEllipses(Bitmap srcBitmap) {
+        Mat src = openCVUtil.bitmapToMat(srcBitmap);
+        Mat dst = openCVUtil.cloneMat(src);
+        openCVUtil.toGray(dst, dst);
+        Imgproc.threshold(dst, dst, 0, 255, Imgproc.THRESH_BINARY|Imgproc.THRESH_OTSU);
+        List<MatOfPoint> contours = new ArrayList<>();
+        List<RotatedRect> ellipses = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(dst, contours, hierarchy,
+                Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
+        for (int i = 0; i < contours.size(); i++) {
+
+            Imgproc.ellipse(src, ellipses.get(i), new Scalar(255, 0, 0), 2);
+        }
+        return null;
+    }
+
+    @Deprecated
     private Bitmap detectDefault(Bitmap srcBitmap) {
         Mat src = openCVUtil.bitmapToMat(srcBitmap);
         Mat dst = openCVUtil.cloneMat(src);
