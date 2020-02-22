@@ -5,7 +5,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
-public class ShapeDetector {
+public class DefaultDetector {
 
     public String detect(MatOfPoint2f curve) {
         String shape;

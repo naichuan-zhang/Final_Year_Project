@@ -30,6 +30,19 @@ public class OpenCVUtil {
         Log.i(TAG, "reverseColor");
     }
 
+    public void toBinary(Mat mat, int threshold, int maxVal) {
+        Imgproc.threshold(mat, mat, threshold, maxVal, Imgproc.THRESH_BINARY);
+        Log.i(TAG, "toBinary");
+    }
+
+    public double getAngle(Point pt1, Point pt2, Point pt0) {
+        double dx1 = pt1.x - pt0.x;
+        double dy1 = pt1.y - pt0.y;
+        double dx2 = pt2.x - pt0.x;
+        double dy2 = pt2.y - pt0.y;
+        return (dx1 * dx2 + dy1 * dy2) / Math.sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
+    }
+
     public void dilate(Mat mat, double width, double height, int iterations) {
         Imgproc.dilate(mat, mat, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(width, height)), new Point(-1, -1), iterations);
         Log.i(TAG, "dilate");
@@ -154,118 +167,5 @@ public class OpenCVUtil {
             point1.y += 0.01;
         }
         return Math.toDegrees(Math.atan((point1.x - point2.x) / (point1.y - point2.y)));
-    }
-
-    public void toBinary(Mat mat, int threshold, int maxVal) {
-        Imgproc.threshold(mat, mat, threshold, maxVal, Imgproc.THRESH_BINARY);
-        Log.i(TAG, "toBinary");
-    }
-
-    public Point[] checkPoint(Point[] points) {
-        int lastLength = -1;
-        int thisLength = 0;
-        Point[] lp = points;
-        Point[] np;
-        while (true) {
-            np = checkPointOnce(lp);
-            thisLength = np.length;
-            if (thisLength == lastLength) {
-                break;
-            }
-            lastLength = thisLength;
-            lp = np;
-        }
-        return np;
-    }
-
-    /**
-     * 合并直线上的点[分步]
-     */
-    private Point[] checkPointOnce(Point[] points) {
-        int length = points.length;
-        boolean flag = false;// 是否找到可删除点
-        if (length < 4) {
-            return points;// 如果小于四个点 免了判断
-        }
-        label: for (int i = 0; i < length; i++) {// 得到点1
-            for (int j = 0; j < length; j++) {// 得到点2
-                if (j == i) {
-                    continue;
-                }
-                for (int k = 0; k < length; k++) {// 得到点3
-                    if (k == j || k == i) {
-                        continue;
-                    }
-                    // int slope = 0;//斜率
-                    double d1 = getAngle(points[i], points[j]);// i,j直线角度
-                    double d2 = getAngle(points[i], points[k]);// i,k直线角度
-                    double angelMin = d1 - d2;
-                    if (Math.abs(angelMin) < 10) {// 如果倾角非常接近，删除中间的点
-                        int needDelete = deleteMiddlePointToNull(points[i],
-                                points[j], points[k]);
-                        if (needDelete == 1) {
-                            points[i] = null;
-                        } else if (needDelete == 2) {
-                            points[j] = null;
-                        } else if (needDelete == 3) {
-                            points[k] = null;
-                        }
-                        flag = true;
-                        break label;
-                    }
-                }
-            }
-        }
-        if (flag) {
-            Point[] newPoints = new Point[length - 1];
-            int index = 0;
-            for (Point p : points) {// 准备一个没有空值的新数组
-                if (null != p) {
-                    newPoints[index] = p;
-                    index++;
-                }
-            }
-            return newPoints;
-        } else {
-            return points;
-        }
-    }
-
-    private int deleteMiddlePointToNull(Point p1, Point p2, Point p3) {
-        double a = p1.x + p1.y;
-        double b = p2.x + p2.y;
-        double c = p3.x + p3.y;
-        if ((a > b && b > c) || (a < b && b < c)) {// b在中间
-            return 2;
-        } else if ((c > a && a > b) || (c < a && a < b)) {// a在中间
-            return 1;
-        } else {
-            return 3;
-        }
-    }
-    /**
-     * 横向填充杂色
-     */
-    public void coverBackGroundToBlack(Mat mat) {
-        final double blackPixle[] = { 0.0 };
-        for (int y = 0; y < mat.height(); y++) {
-            for (int x = 0; x < mat.width(); x++) {
-                double pixle[] = mat.get(y, x);
-                if (pixle[0] == 255.0) {// 如果是白色
-                    mat.put(y, x, blackPixle);
-                } else {// 遇到黑色
-                    break;
-                }
-            }
-            for (int x = mat.width() - 1; x > 0; x--) {
-                double pixle[] = mat.get(y, x);
-                if (pixle[0] == 255.0) {// 如果是白色
-                    mat.put(y, x, blackPixle);
-                } else {// 遇到黑色
-                    break;
-                }
-            }
-        }
-        Log.d(TAG, "背景涂黑完成");
     }
 }

@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.imageprocessor.R;
 
@@ -23,6 +24,7 @@ public class DetectFragment extends Fragment {
     private View root;
     private DetectViewModel mViewModel;
     private ImageView detectImageView;
+    private TextView detectTextView;
 
     public static DetectFragment newInstance() {
         return new DetectFragment();
@@ -33,6 +35,7 @@ public class DetectFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.detect_fragment, container, false);
         detectImageView = root.findViewById(R.id.detectImageView);
+        detectTextView = root.findViewById(R.id.detectTextView);
         return root;
     }
 
@@ -44,6 +47,8 @@ public class DetectFragment extends Fragment {
         if (resultBitmap != null) {
             detectImageView.setImageBitmap(resultBitmap);
         }
+        String resultText = getArguments().getString("resultText");
+        detectTextView.setText(resultText);
     }
 
 }

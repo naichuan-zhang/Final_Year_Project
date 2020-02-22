@@ -11,8 +11,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,13 +20,12 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
 
-import com.bumptech.glide.util.Util;
 import com.example.imageprocessor.R;
-import com.example.imageprocessor.detector.ShapeDetector;
+import com.example.imageprocessor.detector.DefaultDetector;
+import com.example.imageprocessor.detector.RectangleDetector;
 import com.example.imageprocessor.misc.OpenCVUtil;
 import com.example.imageprocessor.misc.Utility;
 
-import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -51,6 +50,7 @@ public class PreviewFragment extends Fragment {
     private PreviewViewModel previewViewModel;
     private View root;
 
+    private ProgressBar progressBarPreview;
     private ImageView previewImageView;
     private Button buttonEdit;
     private Spinner shapeSpinner;
@@ -79,6 +79,7 @@ public class PreviewFragment extends Fragment {
         shapeSpinner = root.findViewById(R.id.shapeSpinner);
         buttonDetect = root.findViewById(R.id.buttonDetect);
         buttonEdit = root.findViewById(R.id.buttonEdit);
+        progressBarPreview = root.findViewById(R.id.progressBarPreview);
         return root;
     }
 
@@ -118,34 +119,34 @@ public class PreviewFragment extends Fragment {
             }
         });
 
+        progressBarPreview.setVisibility(View.GONE);
         buttonDetect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bitmap resultBitmap = detect(selectedShape, imageBitmap);
+                Object[] objs = detect(selectedShape, imageBitmap);
                 Bundle bundle = new Bundle();
-                bundle.putParcelable("resultBitmap", resultBitmap);
+                bundle.putParcelable("resultBitmap", (Bitmap)objs[0]);
+                bundle.putString("resultText", (String)objs[1]);
                 Navigation.findNavController(root).navigate(R.id.action_previewFragment_to_detectFragment, bundle);
             }
         });
     }
 
-    private Bitmap detect(String shape, final Bitmap srcBitmap) {
+    private Object[] detect(String shape, final Bitmap srcBitmap) {
         openCVUtil = new OpenCVUtil();
-        Bitmap resultBitmap = null;
+        Object[] result = null;
         switch (shape.toLowerCase()) {
-            case "auto":
-                Log.i(TAG, "shape -> auto");
-                resultBitmap = detectShapes(srcBitmap);
-                break;
             case "line":
                 Log.i(TAG, "shape -> line");
+                result = detectLines(srcBitmap);
                 break;
             case "circle":
                 Log.i(TAG, "shape -> circle");
-//                resultBitmap = detectCircles(srcBitmap);
+                result = detectCircles(srcBitmap);
                 break;
             case "rectangle":
                 Log.i(TAG, "shape -> rectangle");
+                result = detectRectangles(srcBitmap);
                 break;
             case "ellipse":
                 Log.i(TAG, "shape -> ellipse");
@@ -153,10 +154,69 @@ public class PreviewFragment extends Fragment {
             default:
                 break;
         }
-        return resultBitmap;
+        return result;
     }
 
-    private Bitmap detectShapes(Bitmap srcBitmap) {
+    private Object[] detectLines(Bitmap srcBitmap) {
+        Mat src = openCVUtil.bitmapToMat(srcBitmap);
+        Mat dst = openCVUtil.cloneMat(src);
+        return null;
+    }
+
+    private Object[] detectCircles(Bitmap srcBitmap) {
+        Mat src = openCVUtil.bitmapToMat(srcBitmap);
+        Mat dst = openCVUtil.cloneMat(src);
+        return null;
+    }
+
+    private Object[] detectRectangles(Bitmap srcBitmap) {
+        Mat src = openCVUtil.bitmapToMat(srcBitmap);
+        Mat dst = openCVUtil.cloneMat(src);
+        // convert image to grayscale
+        openCVUtil.toGray(dst, dst);
+        // down-scale and up-scale the image to remove small noises
+        Mat pyr = new Mat();
+        Imgproc.pyrDown(dst, pyr, new Size(src.cols()/2, src.rows()/2));
+        Imgproc.pyrUp(pyr, dst, src.size());
+        // blur the image to reduce noise
+        Imgproc.GaussianBlur(dst, dst, new Size(3, 3), 0);
+        // apply canny
+        Imgproc.Canny(dst, dst, 20, 50, 3, false);
+        // dilate canny to remove potential holes between edge segments
+        Imgproc.dilate(dst, dst, new Mat(), new Point(-1, -1));
+        // find contours
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(dst, contours, hierarchy,
+                Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        RectangleDetector detector = new RectangleDetector();
+        int triangle = 0, rectangle = 0, square = 0, polygon = 0;
+        for (int i = 0; i < contours.size(); i++) {
+            Moments m = Imgproc.moments(contours.get(i));
+            // get center point for each contour
+            int cX = (int) (m.m10 / m.m00);
+            int cY = (int) (m.m01 / m.m00);
+            String shape = detector.detect(new MatOfPoint2f(contours.get(i).toArray()));
+            if (shape != null) {
+                Imgproc.drawContours(src, contours, i, new Scalar(255, 0, 0, 0), 1);
+                Imgproc.circle(src, new Point(cX, cY), 3, new Scalar(255, 0, 0), -1);
+                Imgproc.putText(src, shape, new Point(cX, cY), Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 1);
+                if (shape.equalsIgnoreCase("triangle"))
+                    triangle++;
+                else if (shape.equalsIgnoreCase("rectangle"))
+                    rectangle++;
+                else if (shape.equalsIgnoreCase("square"))
+                    square++;
+                else if (shape.equalsIgnoreCase("polygon"))
+                    polygon++;
+            }
+        }
+        String resultText = "Triangle: " + triangle + "\nRectangle: " + rectangle + "\nSquare: " + square + "\nPolygon: " + polygon;
+        Bitmap resultBitmap = openCVUtil.matToBitmap(dst, srcBitmap);
+        return new Object[] {resultBitmap, resultText};
+    }
+
+    private Bitmap detectDefault(Bitmap srcBitmap) {
         Mat src = openCVUtil.bitmapToMat(srcBitmap);
         Mat dst = openCVUtil.cloneMat(src);
         openCVUtil.toGray(dst, dst);
@@ -168,7 +228,7 @@ public class PreviewFragment extends Fragment {
         Mat hierarchy = new Mat();
         Imgproc.findContours(dst, contours, hierarchy,
                 Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
-        ShapeDetector detector = new ShapeDetector();
+        DefaultDetector detector = new DefaultDetector();
         for (int i = 0; i < contours.size(); i++) {
             Moments m = Imgproc.moments(contours.get(i));
             // get center point for each contour
@@ -182,59 +242,4 @@ public class PreviewFragment extends Fragment {
         }
         return openCVUtil.matToBitmap(src, srcBitmap);
     }
-
-    // TODO: Not Accurate
-//    private Bitmap detectLines(Bitmap srcBitmap) {
-//        Mat srcImage = openCVUtil.bitmapToMat(srcBitmap);
-//        Mat dstImage = openCVUtil.cloneMat(srcImage);
-//        Imgproc.Canny(srcImage, dstImage, 400, 500, 5, false);
-//        Mat mat = new Mat();
-//        Imgproc.HoughLines(dstImage, mat, 1, Math.PI / 180, 200, 0, 0, 0, 10);
-//        for (int i = 0; i < mat.rows(); i++) {
-//            double[] vec = mat.get(i, 0);
-//            double rho = vec[0];
-//            double theta = vec[1];
-//            Point point1 = new Point();
-//            Point point2 = new Point();
-//            double a = Math.cos(theta);
-//            double b = Math.sin(theta);
-//            double x0 = a * rho;
-//            double y0 = b * rho;
-//            point1.x = Math.round(x0 + 1000 * (-b));
-//            point1.y = Math.round(y0 + 1000 * a);
-//            point2.x = Math.round(x0 - 1000 * (-b));
-//            point2.y = Math.round(y0 - 1000 * a);
-//            if (theta >= 0)
-//                Imgproc.line(dstImage, point1, point2, new Scalar(255, 255, 255, 255), 1, Imgproc.LINE_4, 0);
-//        }
-//        return openCVUtil.matToBitmap(dstImage, srcBitmap);
-//    }
-
-//    private void detectShapes(Bitmap srcBitmap) {
-//        // convert bitmap to mat
-//        Mat image = openCVUtil.bitmapToMat(srcBitmap);
-//        Mat m1 = openCVUtil.cloneMat(image);
-//        Mat declareMat = openCVUtil.cloneMat(image);
-//        openCVUtil.reverseColor(image);
-//        openCVUtil.gaussianBlur(declareMat, 9, 9, 9);
-//        Mat m2 = openCVUtil.cloneMat(declareMat);
-//        Mat srcWhite = openCVUtil.cloneMat(declareMat);
-//        openCVUtil.dilate(image, 1, 1, 1);
-//        openCVUtil.toGray(image, image);
-//        Mat binary = openCVUtil.cloneMat(image);
-//        openCVUtil.toBinary(binary, 130, 255);
-////        openCVUtil.coverBackGroundToBlack(binary);
-//        List<MatOfPoint> contours = openCVUtil.getContours(binary);
-//        for (int i = 0; i < contours.size(); i++) {
-//            Mat mat = openCVUtil.createMat(0, 0, 0);
-//            openCVUtil.drawContours(mat, contours, i, 0, 255, 0, 1);
-//            Point[] points = openCVUtil.getCorners(mat);
-//            Point[] checkedPoints = openCVUtil.checkPoint(points);
-//            for (Point checkedPoint : checkedPoints) {
-//                openCVUtil.drawCircleByCenter(mat, checkedPoint);
-//            }
-//        }
-//        Bitmap bitmap = openCVUtil.matToBitmap(binary, srcBitmap);
-//        previewImageView.setImageBitmap(bitmap);
-//    }
 }

@@ -20,6 +20,11 @@
             android:title="@string/menu_gallery" />
 
         <item
+            android:id="@+id/nav_stitcher"
+            android:icon="@drawable/ic_menu_stitcher"
+            android:title="@string/menu_stitcher" />
+
+        <item
             android:id="@+id/nav_history"
             android:icon="@drawable/ic_menu_history"
             android:title="@string/menu_history" />
