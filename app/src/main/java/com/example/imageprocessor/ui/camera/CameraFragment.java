@@ -1,5 +1,6 @@
 package com.example.imageprocessor.ui.camera;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.activity.RealTimeActivity;
 import com.example.imageprocessor.misc.Constants;
 import com.example.imageprocessor.misc.Utility;
 import com.example.imageprocessor.room.Image;
@@ -30,6 +32,7 @@ public class CameraFragment extends Fragment implements ICameraFragment {
 
     private CameraViewModel cameraViewModel;
     private ConstraintLayout constraintLayoutSystemCamera;
+    private ConstraintLayout constraintLayoutCustomCamera;
     private ICamera cameraImpl;
 
     private View root;
@@ -43,13 +46,24 @@ public class CameraFragment extends Fragment implements ICameraFragment {
         cameraImpl = new CameraImpl(this, getActivity());
 
         root = inflater.inflate(R.layout.fragment_camera, container, false);
-
+        // system camera invocation
         constraintLayoutSystemCamera = root.findViewById(R.id.constraintLayoutSystemCamera);
         constraintLayoutSystemCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "constraintLayoutSystemCamera clicked...");
                 cameraImpl.openCamera();
+            }
+        });
+        // custom camera invocation
+        constraintLayoutCustomCamera = root.findViewById(R.id.constraintLayoutCustomCamera);
+        constraintLayoutCustomCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "constraintLayoutCustomCamera clicked...");
+                // start RealTimeActivity
+                Intent intent = new Intent(getContext(), RealTimeActivity.class);
+                startActivity(intent);
             }
         });
 

@@ -9,40 +9,43 @@
         android:id="@+id/constraintLayoutSystemCamera"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_margin="30dp"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        android:clickable="true"
-        android:focusable="true">
+        app:layout_constraintVertical_bias="1.0">
 
         <ImageButton
             android:id="@+id/imageButtonSystemCamera"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@null"
-            android:scaleType="fitCenter"
             android:clickable="false"
+            android:scaleType="fitCenter"
             app:layout_constraintBottom_toTopOf="@+id/textViewSystemCamera"
             app:layout_constraintEnd_toEndOf="@+id/textViewSystemCamera"
             app:layout_constraintStart_toStartOf="@+id/textViewSystemCamera"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_weight="3"
             app:srcCompat="@drawable/ic_system_camera" />
 
         <TextView
             android:id="@+id/textViewSystemCamera"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:clickable="false"
             android:text="@string/system_camera"
             android:textAlignment="center"
             android:textSize="24sp"
-            android:clickable="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageButtonSystemCamera" />
+            app:layout_constraintTop_toBottomOf="@+id/imageButtonSystemCamera"
+            app:layout_constraintVertical_weight="1" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -50,6 +53,52 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="356dp"
-        app:layout_constraintGuide_percent="0.5" />
+        app:layout_constraintGuide_begin="300dp"
+        app:layout_constraintGuide_percent="0.5"
+        app:layout_constraintHeight_percent="0.5" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayoutCustomCamera"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="30dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintHorizontal_bias="1.0">
+
+        <ImageButton
+            android:id="@+id/imageButtonCustomCamera"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@null"
+            android:clickable="false"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toTopOf="@+id/textViewCustomCamera"
+            app:layout_constraintEnd_toEndOf="@+id/textViewCustomCamera"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="@+id/textViewCustomCamera"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_weight="3"
+            app:srcCompat="@drawable/ic_custom_camera" />
+
+        <TextView
+            android:id="@+id/textViewCustomCamera"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:clickable="false"
+            android:textSize="24sp"
+            android:textAlignment="center"
+            android:text="@string/custom_camera"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageButtonCustomCamera"
+            app:layout_constraintVertical_weight="1" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
