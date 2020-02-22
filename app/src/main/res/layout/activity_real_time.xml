@@ -6,4 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".activity.RealTimeActivity">
 
+    <org.opencv.android.JavaCameraView
+        android:id="@+id/javaCameraView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:show_fps="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

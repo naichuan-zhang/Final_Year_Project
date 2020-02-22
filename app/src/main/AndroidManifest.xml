@@ -23,7 +23,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".activity.RealTimeActivity"></activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -34,6 +33,13 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+
+        <activity
+            android:name=".activity.RealTimeActivity"
+            android:configChanges="layoutDirection|locale"
+            android:label="@string/real_time"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppFullScreenTheme"/>
 
         <activity
             android:name=".activity.SettingsActivity"

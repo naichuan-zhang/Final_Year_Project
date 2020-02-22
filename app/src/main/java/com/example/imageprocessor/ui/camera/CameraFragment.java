@@ -1,6 +1,5 @@
 package com.example.imageprocessor.ui.camera;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -66,7 +65,6 @@ public class CameraFragment extends Fragment implements ICameraFragment {
                 startActivity(intent);
             }
         });
-
         return root;
     }
 

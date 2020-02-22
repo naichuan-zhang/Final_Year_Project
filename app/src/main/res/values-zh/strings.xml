@@ -73,4 +73,5 @@
     <string name="share_to">分享图片到</string>
     <string name="menu_stitcher">拼接</string>
     <string name="custom_camera">自定义相机</string>
+    <string name="real_time">实时检测</string>
 </resources>
