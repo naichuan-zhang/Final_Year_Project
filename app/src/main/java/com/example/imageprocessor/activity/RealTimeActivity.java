@@ -1,10 +1,13 @@
 package com.example.imageprocessor.activity;
 
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,18 +17,11 @@ import com.example.imageprocessor.misc.ZoomableCameraView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-
-import java.util.Objects;
 
 public class RealTimeActivity extends AppCompatActivity
         implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -42,14 +38,26 @@ public class RealTimeActivity extends AppCompatActivity
         System.loadLibrary("opencv_java3");
     }
 
+    private final static int VIEW_MODE_RGBA = 0;
+    private final static int VIEW_MODE_GRAY = 1;
+    private final static int VIEW_MODE_CANNY = 2;
+    private final static int VIEW_MODE_ZOOM = 3;
+
     private ZoomableCameraView javaCameraView;
+    private LinearLayout zoomLinearLayout;
+    private SeekBar zoomSeekBar;
+    private MenuItem itemPreviewRGBA;
+    private MenuItem itemPreviewGray;
+    private MenuItem itemPreviewCanny;
+    private MenuItem itemZoom;
 
     private int width;
     private int height;
+    private int viewMode;
 
     private Mat matRgba;
     private Mat matGray;
-    private Mat matEdges;
+    private Mat matCanny;
     private Mat circles;
 
     @Override
@@ -63,7 +71,11 @@ public class RealTimeActivity extends AppCompatActivity
         javaCameraView = findViewById(R.id.javaCameraView);
         javaCameraView.setCvCameraViewListener(this);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
-        javaCameraView.setZoomSeekBar((SeekBar)findViewById(R.id.zoomSeekBar));
+        zoomSeekBar = findViewById(R.id.zoomSeekBar);
+//        zoomSeekBar.setVisibility(View.INVISIBLE);
+        javaCameraView.setZoomSeekBar(zoomSeekBar);
+        zoomLinearLayout = findViewById(R.id.linearLayoutZoom);
+        zoomLinearLayout.setVisibility(View.GONE);
     }
 
     @Override
@@ -73,24 +85,65 @@ public class RealTimeActivity extends AppCompatActivity
 
         matRgba = new Mat(height, width, CvType.CV_8UC4);
         matGray = new Mat(height, width, CvType.CV_8UC1);
-        matEdges = new Mat(height, width, CvType.CV_8UC1);
+        matCanny = new Mat(height, width, CvType.CV_8UC1);
     }
 
     @Override
     public void onCameraViewStopped() {
         matRgba.release();
         matGray.release();
-        matEdges.release();
+        matCanny.release();
     }
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        // default input frame is in RGBA
-        matRgba = inputFrame.rgba();
-
-        // TODO: DETECT ACTIONS HERE ...
-
+        final int mode = viewMode;
+        switch (mode) {
+            case VIEW_MODE_RGBA:
+                setZoomLinearLayoutVisibility(View.GONE);
+                matRgba = inputFrame.rgba();
+                break;
+            case VIEW_MODE_GRAY:
+                setZoomLinearLayoutVisibility(View.GONE);
+                Imgproc.cvtColor(inputFrame.gray(), matRgba, Imgproc.COLOR_GRAY2RGBA, 4);
+                break;
+            case VIEW_MODE_CANNY:
+                setZoomLinearLayoutVisibility(View.GONE);
+                matRgba = inputFrame.rgba();
+                Imgproc.Canny(inputFrame.gray(), matCanny, 80, 100);
+                Imgproc.cvtColor(matCanny, matRgba, Imgproc.COLOR_GRAY2BGRA, 4);
+                break;
+            case VIEW_MODE_ZOOM:
+                setZoomLinearLayoutVisibility(View.VISIBLE);
+                break;
+            default:
+                break;
+        }
         return matRgba;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        itemPreviewRGBA = menu.add(getString(R.string.preview_rgba));
+        itemPreviewGray = menu.add(getString(R.string.preview_gray));
+        itemPreviewCanny = menu.add(getString(R.string.preview_canny));
+        itemZoom = menu.add(getString(R.string.zoom));
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item == itemPreviewRGBA)
+            viewMode = VIEW_MODE_RGBA;
+        else if (item == itemPreviewGray)
+            viewMode = VIEW_MODE_GRAY;
+        else if (item == itemPreviewCanny)
+            viewMode = VIEW_MODE_CANNY;
+        else if (item == itemZoom)
+            viewMode = VIEW_MODE_ZOOM;
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -120,6 +173,15 @@ public class RealTimeActivity extends AppCompatActivity
         if (javaCameraView != null) {
             javaCameraView.disableView();
         }
+    }
+
+    public void setZoomLinearLayoutVisibility(final int visibility) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                zoomLinearLayout.setVisibility(visibility);
+            }
+        });
     }
 
     private BaseLoaderCallback loaderCallback = new BaseLoaderCallback(this) {

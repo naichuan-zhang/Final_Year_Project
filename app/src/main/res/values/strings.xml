@@ -77,4 +77,10 @@
     <string name="menu_stitcher">Stitcher</string>
     <string name="custom_camera">Custom Camera</string>
     <string name="real_time">Real Time Detection</string>
+    <string name="color_effects_not_supported">Color effects are not supported!</string>
+    <string name="color_effects">Color Effects</string>
+    <string name="preview_canny">Canny</string>
+    <string name="preview_gray">Gray</string>
+    <string name="preview_rgba">RGBA</string>
+    <string name="zoom">Zoom</string>
 </resources>

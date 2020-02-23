@@ -7,12 +7,16 @@ import android.widget.SeekBar;
 
 import org.opencv.android.JavaCameraView;
 
+import java.util.List;
+
 
 /**
- * Reference:
+ * Reference -> Zoomable:
  *      https://stackoverflow.com/questions/32718941/is-it-possible-to-zoom-and-focus-using-opencv-on-android
  */
-public class ZoomableCameraView extends JavaCameraView {
+public class ZoomableCameraView extends JavaCameraView implements Camera.PictureCallback {
+
+    private final static String TAG = "ZoomableCameraView: ";
 
     private SeekBar seekBar;
 
@@ -43,12 +47,10 @@ public class ZoomableCameraView extends JavaCameraView {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
             }
         });
     }
@@ -61,5 +63,10 @@ public class ZoomableCameraView extends JavaCameraView {
             enableZoomSeekBar(params);
         mCamera.setParameters(params);
         return ret;
+    }
+
+    @Override
+    public void onPictureTaken(byte[] data, Camera camera) {
+        // TODO: Impl take picture onclick
     }
 }

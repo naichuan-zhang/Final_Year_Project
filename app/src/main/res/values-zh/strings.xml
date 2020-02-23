@@ -74,4 +74,10 @@
     <string name="menu_stitcher">拼接</string>
     <string name="custom_camera">自定义相机</string>
     <string name="real_time">实时检测</string>
+    <string name="color_effects_not_supported">该设备不支持任何颜色效果！</string>
+    <string name="color_effects">颜色效果</string>
+    <string name="preview_canny">Canny边缘</string>
+    <string name="preview_gray">灰度化</string>
+    <string name="preview_rgba">彩色化</string>
+    <string name="zoom">缩放</string>
 </resources>
