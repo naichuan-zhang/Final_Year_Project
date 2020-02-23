@@ -44,10 +44,10 @@
     </style>
 
     <!-- Full Screen -> used in RealTimeActivity -->
-    <style name="AppFullScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppNoStatusBar" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowActionBar">true</item>
+        <item name="android:windowFullscreen">false</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
 

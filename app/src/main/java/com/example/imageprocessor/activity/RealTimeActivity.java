@@ -5,10 +5,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.misc.ZoomableCameraView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -40,7 +42,7 @@ public class RealTimeActivity extends AppCompatActivity
         System.loadLibrary("opencv_java3");
     }
 
-    private JavaCameraView javaCameraView;
+    private ZoomableCameraView javaCameraView;
 
     private int width;
     private int height;
@@ -55,12 +57,13 @@ public class RealTimeActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Hide status bar
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_real_time);
 
         javaCameraView = findViewById(R.id.javaCameraView);
         javaCameraView.setCvCameraViewListener(this);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
+        javaCameraView.setZoomSeekBar((SeekBar)findViewById(R.id.zoomSeekBar));
     }
 
     @Override

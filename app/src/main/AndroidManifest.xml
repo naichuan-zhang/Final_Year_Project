@@ -39,7 +39,7 @@
             android:configChanges="layoutDirection|locale"
             android:label="@string/real_time"
             android:screenOrientation="landscape"
-            android:theme="@style/AppFullScreenTheme"/>
+            android:theme="@style/AppNoStatusBar" />
 
         <activity
             android:name=".activity.SettingsActivity"
