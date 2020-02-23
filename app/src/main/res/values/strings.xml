@@ -83,4 +83,6 @@
     <string name="preview_gray">Gray</string>
     <string name="preview_rgba">RGBA</string>
     <string name="zoom">Zoom</string>
+    <string name="preview_contours">Contours</string>
+    <string name="shapes">Detect</string>
 </resources>

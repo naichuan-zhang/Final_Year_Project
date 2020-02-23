@@ -75,6 +75,4 @@ public class StitcherFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(this).get(StitcherViewModel.class);
     }
-
-    public native int stitch(Object images[], int size, long addrSrcRes);
 }
