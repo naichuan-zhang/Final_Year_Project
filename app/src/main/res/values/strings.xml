@@ -73,7 +73,6 @@
     <string name="share_to">Share image to</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="menu_stitcher">Stitcher</string>
     <string name="custom_camera">Custom Camera</string>
     <string name="real_time">Real Time Detection</string>
@@ -85,4 +84,6 @@
     <string name="zoom">Zoom</string>
     <string name="preview_contours">Contours</string>
     <string name="shapes">Detect</string>
+    <string name="save">Save</string>
+    <string name="capture">Capture</string>
 </resources>

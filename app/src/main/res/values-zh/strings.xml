@@ -82,4 +82,6 @@
     <string name="zoom">缩放</string>
     <string name="preview_contours">轮廓</string>
     <string name="shapes">检测</string>
+    <string name="save">保存</string>
+    <string name="capture">拍照</string>
 </resources>
