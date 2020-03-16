@@ -14,35 +14,33 @@
 using namespace cv;
 using namespace std;
 
+const float RESOLUTION = 1000.0F;
+
 extern "C" {
 
 JNIEXPORT void JNICALL
-Java_com_example_imageprocessor_ui_stitcher_StitcherFragment_processPanorama(JNIEnv * env, jobject clazz,
+Java_com_example_imageprocessor_ui_stitcher_StitcherFragment_stitchImages(JNIEnv * env, jobject clazz,
                                             jlongArray imageAddressArray, jlong outputAddress) {
 
-    // Get the length of the long array
-    jsize a_len = env->GetArrayLength(imageAddressArray);
-    // Convert the jlongArray to an array of jlong
-    jlong *imgAddressArr = env->GetLongArrayElements(imageAddressArray, 0);
-    // Create a vector to store all the image
-    vector< Mat > imgVec;
-    for(int k=0;k<a_len;k++)
-    {
-        // Get the image
-        Mat & curimage=*(Mat*)imgAddressArr[k];
-        Mat newimage;
-        // Convert to a 3 channel Mat to use with Stitcher module
-        cvtColor(curimage, newimage, CV_BGRA2RGB);
-        // Reduce the resolution for fast computation
-        float scale = 1000.0f / curimage.rows;
-        resize(newimage, newimage, Size(scale * curimage.rows, scale * curimage.cols));
-        imgVec.push_back(newimage);
+    jsize length = env->GetArrayLength(imageAddressArray);
+    jlong * imageAddresses = env->GetLongArrayElements(imageAddressArray, nullptr);
+    vector<Mat> imageVector;
+
+    for (int i = 0; i < length; i++) {
+        Mat & curImage = *(Mat*) imageAddresses[i];
+        Mat newImage;
+        cvtColor(curImage, newImage, CV_BGRA2RGB);
+        // reduce resolution for fast computation
+        float scale = RESOLUTION / curImage.rows;
+        resize(newImage, newImage,
+                Size(scale * curImage.rows, scale * curImage.cols));
+        imageVector.push_back(newImage);
     }
-    Mat & result  = *(Mat*) outputAddress;
+
+    Mat & result = *(Mat*) outputAddress;
     Stitcher stitcher = Stitcher::createDefault();
-    stitcher.stitch(imgVec, result);
-    // Release the jlong array
-    env->ReleaseLongArrayElements(imageAddressArray, imgAddressArr ,0);
+    stitcher.stitch(imageVector, result);
+    env->ReleaseLongArrayElements(imageAddressArray, imageAddresses, 0);
 
 }
 

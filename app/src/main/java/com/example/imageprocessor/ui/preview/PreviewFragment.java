@@ -59,7 +59,7 @@ public class PreviewFragment extends Fragment {
     // default detect shape is "Auto"
     private String selectedShape = "Auto";
 
-    // 1 -> gallery, 2 -> camera
+    // 1 -> gallery, 2 -> camera, 3 -> others
     private int from;
     private Uri uri;
 

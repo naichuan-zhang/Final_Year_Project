@@ -26,6 +26,7 @@ public class Image implements Parcelable {
 
     // 1 -> gallery image
     // 2 -> camera image
+    // 3 -> others
     @ColumnInfo(name = "imageSource")
     private int imageSource;
 

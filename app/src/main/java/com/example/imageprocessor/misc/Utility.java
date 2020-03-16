@@ -15,7 +15,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.view.View;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -30,6 +30,8 @@ import java.util.Objects;
 
 public class Utility {
 
+    private final static String TAG = "Utility: ";
+
     private final static String[] cameraPermissions = {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -40,8 +42,9 @@ public class Utility {
     };
 
     public static Bitmap getBitmap(Uri imageUri, Context context, int from) throws IOException {
-        // system gallery
-        if (from == 1) {
+        // system gallery or others
+        if (from == 1 || from == 3) {
+            Log.i(TAG, "URI: " + imageUri + ", FROM: " + from);
             String filePath = Utility.getRealPathFromUri(context, imageUri);
 
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
@@ -68,6 +71,7 @@ public class Utility {
 
             // system camera
         } else if (from == 2) {
+            Log.i(TAG, "URI: " + imageUri + ", FROM: " + from);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             ContentResolver contentResolver = context.getContentResolver();
@@ -104,7 +108,7 @@ public class Utility {
 
     public static Bitmap fixImageOrientation(Context context, Bitmap bitmap,
                                              String imageUri, int imageFrom) throws IOException {
-        if (imageFrom == 1) {
+        if (imageFrom == 1 || imageFrom == 3) {
             Bitmap rotatedImage;
             ExifInterface exif = null;
 

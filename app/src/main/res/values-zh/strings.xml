@@ -84,4 +84,5 @@
     <string name="shapes">检测</string>
     <string name="save">保存</string>
     <string name="capture">拍照</string>
+    <string name="save_msg">图片已保存</string>
 </resources>

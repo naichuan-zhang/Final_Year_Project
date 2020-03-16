@@ -11,8 +11,11 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.hardware.Camera;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -24,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -36,10 +40,13 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -57,7 +64,7 @@ public class StitcherFragment extends Fragment {
 
     private final static String TAG = "StitchingActivity: ";
 
-    private StitcherViewModel mViewModel;
+    private StitcherViewModel stitcherViewModel;
     private View root;
     private Button captureButton, saveButton;
     private SurfaceView surfaceView, surfaceViewOnTop;
@@ -66,7 +73,8 @@ public class StitcherFragment extends Fragment {
     private boolean safeToTakePicture = true;
     private ProgressDialog progressDialog;
 
-    private List<Mat> listImages = new ArrayList<>();
+    private List<Mat> images = new ArrayList<>();
+    private Uri uri;
 
     public StitcherFragment() {
     }
@@ -90,7 +98,8 @@ public class StitcherFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(StitcherViewModel.class);
+        stitcherViewModel = ViewModelProviders.of(this).get(StitcherViewModel.class);
+
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
@@ -118,6 +127,8 @@ public class StitcherFragment extends Fragment {
             public void surfaceDestroyed(SurfaceHolder holder) {
             }
         });
+
+        // Overlay SurfaceView config
         surfaceViewOnTop.setZOrderOnTop(true);
         surfaceViewOnTop.getHolder().setFormat(PixelFormat.TRANSPARENT);
 
@@ -138,35 +149,7 @@ public class StitcherFragment extends Fragment {
                     @Override
                     public void run() {
                         showProcessingDialog();
-                        try {
-                            int elems = listImages.size();
-                            long[] tempobjaddr = new long[elems];
-                            for (int i = 0; i < elems; i++)
-                                tempobjaddr[i] = listImages.get(i).getNativeObjAddr();
-                            Mat result = new Mat();
-                            processPanorama(tempobjaddr, result.getNativeObjAddr());
-                            Log.i(TAG, Arrays.toString(tempobjaddr));
-                            // Save the image to external storage
-                            File sdcard = Environment.getExternalStorageDirectory();
-                            final String fileName = sdcard.getAbsolutePath() + "/stitcher_" + System.currentTimeMillis() + ".png";
-                            Imgcodecs.imwrite(fileName, result);
-                            Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getContext(), "File saved at: " + fileName, Toast.LENGTH_LONG).show();
-                                    Log.i(TAG, "File saved at: " + fileName);
-                                    // TODO: Save image to db !!!!!!!
-//                                    String imageDate = Utility.getCurrentDateTime();
-//                                    String imageUri = ;
-//                                    ImageViewModel imageViewModel = ViewModelProviders.of(getFragment()).get(ImageViewModel.class);
-//                                    Image image = new Image(fileName, imageDate, imageUri, 3);
-                                }
-                            });
-
-                            listImages.clear();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        processImage();
                         closeProcessingDialog();
                     }
                 }).start();
@@ -174,12 +157,50 @@ public class StitcherFragment extends Fragment {
         });
     }
 
+    private void processImage() {
+        try {
+            int size = images.size();
+            long[] objAddrs = new long[size];
+            for (int i = 0; i < size; i++)
+                objAddrs[i] = images.get(i).getNativeObjAddr();
+            Mat result = new Mat();
+            stitchImages(objAddrs, result.getNativeObjAddr());
+            Log.i(TAG, Arrays.toString(objAddrs));
+            // Save the image to Room DB
+            Bitmap bitmap = Bitmap.createBitmap(result.cols(), result.rows(), Bitmap.Config.RGB_565);
+            Utils.matToBitmap(result, bitmap);
+            uri = getImageUri(Objects.requireNonNull(getContext()), bitmap);
+            saveImageToDatabase();
+            // Clear the array
+            images.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Uri getImageUri(Context context, Bitmap bitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, "", null);
+        return Uri.parse(path);
+    }
+
+    private void saveImageToDatabase() {
+        String imageDate = Utility.getCurrentDateTime();
+        String imageUri = uri.toString();
+        String imageName = new File(imageUri).getName();
+        int imageSource = 3;        // from others
+        Image image = new Image(imageName, imageDate, imageUri, imageSource);
+        ImageViewModel imageViewModel = ViewModelProviders.of(getFragment()).get(ImageViewModel.class);
+        imageViewModel.insertImages(image);
+    }
+
     private void showProcessingDialog() {
         Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 camera.stopPreview();
-                progressDialog = ProgressDialog.show(getActivity(), "", "Panorama", true);
+                progressDialog = ProgressDialog.show(getActivity(), "", getString(R.string.loading), true);
                 progressDialog.setCancelable(false);
             }
         });
@@ -195,18 +216,19 @@ public class StitcherFragment extends Fragment {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private Camera.PictureCallback jpegCallback = new Camera.PictureCallback() {
         public void onPictureTaken(byte[] data, Camera camera) {
-            // decode the byte array to a bitmap
+            // Decode the byte array to a bitmap
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            // Rotate the picture to fit portrait mode
+            // Rotate bitmap to fit the camera
             Matrix matrix = new Matrix();
             matrix.postRotate(90);
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
-
+            // Convert bitmap to mat and add it to array
             Mat mat = new Mat();
             Utils.bitmapToMat(bitmap, mat);
-            listImages.add(mat);
+            images.add(mat);
 
             Canvas canvas = null;
             try {
@@ -214,10 +236,10 @@ public class StitcherFragment extends Fragment {
                 synchronized (surfaceView.getHolder()) {
                     // Clear canvas
                     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-
                     // Scale the image to fit the SurfaceView
                     float scale = 1.0f * surfaceView.getHeight() / bitmap.getHeight();
-                    Bitmap scaleImage = Bitmap.createScaledBitmap(bitmap, (int)(scale * bitmap.getWidth()), surfaceView.getHeight() , false);
+                    Bitmap scaleImage = Bitmap.createScaledBitmap(bitmap, (int)(scale * bitmap.getWidth()),
+                                                                surfaceView.getHeight() , false);
                     Paint paint = new Paint();
                     // Set the opacity of the image
                     paint.setAlpha(200);
@@ -253,22 +275,23 @@ public class StitcherFragment extends Fragment {
         isPreview = false;
     }
 
+    @SuppressWarnings("deprecation")
     private Camera.Size getPreviewSize(Camera.Parameters parameters){
-        Camera.Size bestSize = null;
+        Camera.Size size;
         List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();
-        bestSize = sizeList.get(0);
+        size = sizeList.get(0);
         for(int i = 1; i < sizeList.size(); i++){
             if((sizeList.get(i).width * sizeList.get(i).height) >
-                    (bestSize.width * bestSize.height)){
-                bestSize = sizeList.get(i);
+                    (size.width * size.height)){
+                size = sizeList.get(i);
             }
         }
-        return bestSize;
+        return size;
     }
 
     public Fragment getFragment() {
         return this;
     }
 
-    public native void processPanorama(long[] imageAddressArray, long outputAddress);
+    public native void stitchImages(long[] imageAddressArray, long outputAddress);
 }

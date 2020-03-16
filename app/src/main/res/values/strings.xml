@@ -86,4 +86,5 @@
     <string name="shapes">Detect</string>
     <string name="save">Save</string>
     <string name="capture">Capture</string>
+    <string name="save_msg">Image has been saved</string>
 </resources>
