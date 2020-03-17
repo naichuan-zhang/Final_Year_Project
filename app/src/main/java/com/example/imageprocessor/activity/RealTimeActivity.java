@@ -57,8 +57,11 @@ public class RealTimeActivity extends AppCompatActivity
             Arrays.asList("Line", "Circle")
     );
 
+    private static int thresh = 0;
+
     private ZoomableCameraView javaCameraView;
     private SeekBar zoomSeekBar;
+    private SeekBar thresholdSeekBar;
     private MenuItem itemPreviewRGBA;
     private MenuItem itemPreviewGray;
     private MenuItem itemPreviewCanny;
@@ -90,6 +93,24 @@ public class RealTimeActivity extends AppCompatActivity
         zoomSeekBar = findViewById(R.id.zoomSeekBar);
         javaCameraView.setZoomSeekBar(zoomSeekBar);
         zoomSeekBar.setVisibility(View.VISIBLE);
+
+        thresholdSeekBar = findViewById(R.id.threshSeekBar);
+        thresholdSeekBar.setVisibility(View.VISIBLE);
+        thresholdSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                seekBar.setProgress(progress);
+                thresh = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
     }
 
     @Override
@@ -122,7 +143,7 @@ public class RealTimeActivity extends AppCompatActivity
                 break;
             case VIEW_MODE_CANNY:
                 matRgba = inputFrame.rgba();
-                Imgproc.Canny(inputFrame.gray(), matCanny, 80, 100);
+                Imgproc.Canny(inputFrame.gray(), matCanny, thresh, thresh * 2);
                 Imgproc.cvtColor(matCanny, matRgba, Imgproc.COLOR_GRAY2BGRA, 4);
                 break;
             case VIEW_MODE_CONTOURS:
