@@ -12,9 +12,7 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.hardware.Camera;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,7 +25,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -38,15 +35,12 @@ import com.example.imageprocessor.room.ImageViewModel;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -64,10 +58,12 @@ public class StitcherFragment extends Fragment {
 
     private final static String TAG = "StitchingActivity: ";
 
+    private static int num = 1;
+
     private StitcherViewModel stitcherViewModel;
     private View root;
     private Button captureButton, saveButton;
-    private SurfaceView surfaceView, surfaceViewOnTop;
+    private SurfaceView surfaceView;
     private Camera camera;
     private boolean isPreview;
     private boolean safeToTakePicture = true;
@@ -89,7 +85,6 @@ public class StitcherFragment extends Fragment {
         root = inflater.inflate(R.layout.fragment_stitcher, container, false);
         isPreview = false;
         surfaceView = root.findViewById(R.id.surfaceView);
-        surfaceViewOnTop = root.findViewById(R.id.surfaceViewOnTop);
         captureButton = root.findViewById(R.id.captureButton);
         saveButton = root.findViewById(R.id.saveStitcherButton);
         return root;
@@ -128,16 +123,13 @@ public class StitcherFragment extends Fragment {
             }
         });
 
-        // Overlay SurfaceView config
-        surfaceViewOnTop.setZOrderOnTop(true);
-        surfaceViewOnTop.getHolder().setFormat(PixelFormat.TRANSPARENT);
-
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (camera != null && safeToTakePicture) {
                     safeToTakePicture = false;
                     camera.takePicture(null, null, jpegCallback);
+                    Toast.makeText(getContext(), "You have taken " + num + " photos", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -167,12 +159,14 @@ public class StitcherFragment extends Fragment {
             stitchImages(objAddrs, result.getNativeObjAddr());
             Log.i(TAG, Arrays.toString(objAddrs));
             // Save the image to Room DB
-            Bitmap bitmap = Bitmap.createBitmap(result.cols(), result.rows(), Bitmap.Config.RGB_565);
+            Bitmap bitmap = Bitmap.createBitmap(result.cols(), result.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(result, bitmap);
             uri = getImageUri(Objects.requireNonNull(getContext()), bitmap);
             saveImageToDatabase();
+            Toast.makeText(getContext(), "Stitched Image has been saved successfully...", Toast.LENGTH_SHORT).show();
             // Clear the array
             images.clear();
+            num = 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -229,33 +223,10 @@ public class StitcherFragment extends Fragment {
             Mat mat = new Mat();
             Utils.bitmapToMat(bitmap, mat);
             images.add(mat);
-
-            Canvas canvas = null;
-            try {
-                canvas = surfaceViewOnTop.getHolder().lockCanvas(null);
-                synchronized (surfaceView.getHolder()) {
-                    // Clear canvas
-                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                    // Scale the image to fit the SurfaceView
-                    float scale = 1.0f * surfaceView.getHeight() / bitmap.getHeight();
-                    Bitmap scaleImage = Bitmap.createScaledBitmap(bitmap, (int)(scale * bitmap.getWidth()),
-                                                                surfaceView.getHeight() , false);
-                    Paint paint = new Paint();
-                    // Set the opacity of the image
-                    paint.setAlpha(200);
-                    // Draw the image with an offset so we only see one third of image.
-                    canvas.drawBitmap(scaleImage, -scaleImage.getWidth() * 2 / 3, 0, paint);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (canvas != null) {
-                    surfaceViewOnTop.getHolder().unlockCanvasAndPost(canvas);
-                }
-            }
             // Start preview the camera again and set the take picture flag to true
             camera.startPreview();
             safeToTakePicture = true;
+            num++;
         }
     };
 
@@ -263,6 +234,7 @@ public class StitcherFragment extends Fragment {
     public void onResume() {
         super.onResume();
         camera = Camera.open(0);
+        num = 1;
     }
 
     @Override
@@ -273,6 +245,7 @@ public class StitcherFragment extends Fragment {
         camera.release();
         camera = null;
         isPreview = false;
+        num = 1;
     }
 
     @SuppressWarnings("deprecation")

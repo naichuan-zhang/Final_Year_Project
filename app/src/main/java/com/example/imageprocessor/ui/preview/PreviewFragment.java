@@ -1,5 +1,6 @@
 package com.example.imageprocessor.ui.preview;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,8 +24,10 @@ import androidx.navigation.Navigation;
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.detector.DefaultDetector;
 import com.example.imageprocessor.detector.RectangleDetector;
+import com.example.imageprocessor.misc.Constants;
 import com.example.imageprocessor.misc.OpenCVUtil;
 import com.example.imageprocessor.misc.Utility;
+import com.example.imageprocessor.ui.edit.EditFragment;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -117,6 +120,15 @@ public class PreviewFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 // Do nothing
+            }
+        });
+
+        buttonEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("uri", uri);
+                Navigation.findNavController(root).navigate(R.id.action_previewFragment_to_editFragment, bundle);
             }
         });
 

@@ -11,6 +11,7 @@ public class Constants extends Application {
 
     public final static int CAMERA_REQUEST_CODE = 100;
     public final static int GALLERY_REQUEST_CODE = 101;
+    public final static int EDIT_REQUEST_CODE = 103;
 
     public final static int REQUEST_PERMISSIONS = 102;
 }

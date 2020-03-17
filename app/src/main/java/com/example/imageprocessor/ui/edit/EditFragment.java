@@ -2,6 +2,7 @@ package com.example.imageprocessor.ui.edit;
 
 import androidx.lifecycle.ViewModelProviders;
 
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,12 +12,16 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.imageprocessor.R;
+
+import java.util.Objects;
 
 public class EditFragment extends Fragment {
 
     private EditViewModel mViewModel;
+    private Uri uri;
 
     public static EditFragment newInstance() {
         return new EditFragment();
@@ -32,7 +37,9 @@ public class EditFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(this).get(EditViewModel.class);
-        // TODO: Use the ViewModel
+
+        uri = Objects.requireNonNull(getArguments()).getParcelable("uri");
+        Toast.makeText(getContext(), "uri" + uri, Toast.LENGTH_SHORT).show();
     }
 
 }
