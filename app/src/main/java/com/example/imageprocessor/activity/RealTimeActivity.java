@@ -13,23 +13,25 @@ import android.widget.SeekBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.misc.OpenCVUtil;
 import com.example.imageprocessor.misc.ZoomableCameraView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class RealTimeActivity extends AppCompatActivity
@@ -52,9 +54,12 @@ public class RealTimeActivity extends AppCompatActivity
     private final static int VIEW_MODE_CANNY = 2;
     private final static int VIEW_MODE_CONTOURS = 3;
     private final static int VIEW_MODE_CIRCLES = 4;
+    private final static int VIEW_MODE_TRIANGLES = 5;
+    private final static int VIEW_MODE_RECTANGLES = 6;
+    private final static int VIEW_MODE_PENTAGON = 7;
 
     private final static List<String> shapes = new ArrayList<>(
-            Arrays.asList("Line", "Circle")
+            Arrays.asList("Line", "Triangle", "Rectangle", "Pentagon", "Circle")
     );
 
     private static int thresh = 0;
@@ -77,7 +82,10 @@ public class RealTimeActivity extends AppCompatActivity
     private Mat matGray;
     private Mat matCanny;
     private Mat matContours;
-    private Mat circles;
+    private Mat matShapes;
+
+    private MatOfPoint2f approxCurve;
+    private OpenCVUtil openCVUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +129,10 @@ public class RealTimeActivity extends AppCompatActivity
         matGray = new Mat(height, width, CvType.CV_8UC1);
         matCanny = new Mat(height, width, CvType.CV_8UC1);
         matContours = new Mat(height, width, CvType.CV_8UC4);
+        matShapes = new Mat();
+
+        approxCurve = new MatOfPoint2f();
+        openCVUtil = new OpenCVUtil();
     }
 
     @Override
@@ -129,6 +141,7 @@ public class RealTimeActivity extends AppCompatActivity
         matGray.release();
         matCanny.release();
         matContours.release();
+        matShapes.release();
     }
 
     @Override
@@ -149,17 +162,104 @@ public class RealTimeActivity extends AppCompatActivity
             case VIEW_MODE_CONTOURS:
                 matRgba = inputFrame.rgba();
                 Imgproc.cvtColor(inputFrame.rgba(), matContours, Imgproc.COLOR_RGBA2GRAY);
+                Imgproc.Canny(matContours, matContours, thresh, thresh * 2);
                 findContours();
                 break;
+            case VIEW_MODE_TRIANGLES:
+            case VIEW_MODE_RECTANGLES:
             case VIEW_MODE_CIRCLES:
+            case VIEW_MODE_PENTAGON:
                 matRgba = inputFrame.rgba();
-                matGray = inputFrame.gray();
-                findCircles();
+                Imgproc.cvtColor(inputFrame.rgba(), matShapes, Imgproc.COLOR_RGBA2GRAY);
+                Imgproc.Canny(matShapes, matShapes, thresh, thresh * 2);
+                findShapes();
+                break;
             default:
                 break;
         }
         return matRgba;
     }
+
+    private void findContours() {
+        Imgproc.dilate(matContours, matContours, new Mat(), new Point(-1, -1), 1);
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(matContours, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < contours.size(); i++) {
+            Mat contour = contours.get(i);
+            double contourArea = Imgproc.contourArea(contour);
+            if (Math.abs(contourArea) > 1000) {
+                Imgproc.drawContours(matRgba, contours, i, new Scalar(0, 255, 0), 1);
+            }
+        }
+    }
+
+    private void findShapes() {
+        Log.i(TAG, "findShapes ...");
+        Imgproc.dilate(matShapes, matShapes, new Mat(), new Point(-1, -1), 1);
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(matShapes, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < contours.size(); i++) {
+            MatOfPoint contour = contours.get(i);
+            MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
+            Imgproc.approxPolyDP(curve, approxCurve, 0.02 * Imgproc.arcLength(curve, true), true);
+            int vertices = (int) approxCurve.total();
+            double contourArea = Imgproc.contourArea(contour);
+            if (Math.abs(contourArea) > 1000) {
+                if (vertices == 3 && viewMode == VIEW_MODE_TRIANGLES) {
+                    Imgproc.drawContours(matRgba, contours, i, new Scalar(255, 255, 0), -1);
+
+                } else if (vertices >= 4 && vertices <= 5) {
+                    List<Double> cos = new ArrayList<>();
+                    for (int j = 2; j < vertices + 1; j++) {
+                        cos.add(openCVUtil.getAngle(
+                                approxCurve.toArray()[j % vertices],
+                                approxCurve.toArray()[j - 2],
+                                approxCurve.toArray()[j - 1]));
+                    }
+                    Collections.sort(cos);
+                    double mincos = cos.get(0);
+                    double maxcos = cos.get(cos.size() - 1);
+                    if (vertices == 4 && mincos >= -0.1 && maxcos <= 0.3
+                            && viewMode == VIEW_MODE_RECTANGLES) {
+                        Imgproc.drawContours(matRgba, contours, i, new Scalar(0, 255, 0), -1);
+
+                    } else if (vertices == 5 && mincos > -0.34 && maxcos <= -0.27
+                            && viewMode == VIEW_MODE_PENTAGON) {
+                        Imgproc.drawContours(matRgba, contours, i, new Scalar(255, 0, 255), -1);
+                    }
+
+                } else if (vertices >= 10) {
+                    // TODO: Not accurate for circle !!!!!!!!!!!
+                    Rect rect = Imgproc.boundingRect(contour);
+                    int radius = rect.width / 2;
+                    if (Math.abs(1 - (rect.width / rect.height)) <= 0.2
+                            && Math.abs(1 - (contourArea / (Math.PI * radius * radius))) <= 0.2
+                            && viewMode == VIEW_MODE_CIRCLES) {
+                        Imgproc.drawContours(matRgba, contours, i, new Scalar(0, 255, 255), -1);
+                    }
+                }
+            }
+        }
+    }
+
+//    // TODO: NOT ACCURATE !!!!!!!!!!!!!!!!!!!!!
+//    private void findCircles() {
+//        circles = new Mat();
+//        Imgproc.blur(matGray, matGray, new Size(7, 7), new Point(2, 2));
+//        Imgproc.HoughCircles(matGray, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 100, 100, 90, 500);
+//        if (circles.cols() > 0) {
+//            for (int i = 0; i < Math.min(circles.cols(), 5); i++) {
+//                double[] vec = circles.get(0, i);
+//                if (vec == null) break;
+//                Point center = new Point((int) vec[0], (int) vec[1]);
+//                int radius = (int) vec[2];
+//                Imgproc.line(matRgba, center, center, new Scalar(255, 0, 0), 3);
+//                Imgproc.circle(matRgba, center, radius, new Scalar(0, 255, 0), 1);
+//            }
+//        }
+//        circles.release();
+//        circles = null;
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -190,52 +290,17 @@ public class RealTimeActivity extends AppCompatActivity
             viewMode = VIEW_MODE_CONTOURS;
         else if (item.getGroupId() == 1) {
             String shape = shapes.get(item.getItemId());
-            if (shape.equalsIgnoreCase("circle"))
+            if (shape.equalsIgnoreCase("triangle"))
+                viewMode = VIEW_MODE_TRIANGLES;
+            else if (shape.equalsIgnoreCase("rectangle"))
+                viewMode = VIEW_MODE_RECTANGLES;
+            else if (shape.equalsIgnoreCase("pentagon"))
+                viewMode = VIEW_MODE_PENTAGON;
+            else if (shape.equalsIgnoreCase("circle"))
                 viewMode = VIEW_MODE_CIRCLES;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void findContours() {
-        Core.inRange(matContours, new Scalar(22, 0, 0), new Scalar(241, 255, 255), matContours);
-        Imgproc.erode(matContours, matContours,
-                Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(3, 3)));
-        Imgproc.dilate(matContours, matContours,
-                Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(8, 8)));
-        List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(matContours, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        double maxArea = -1;
-        int maxAreaIdx = -1;
-        for (int i = 0; i < contours.size(); i++) {
-            Mat contour = contours.get(i);
-            double contourArea = Imgproc.contourArea(contour);
-            if (contourArea > maxArea) {
-                maxArea = contourArea;
-                maxAreaIdx = i;
-            }
-        }
-        Imgproc.cvtColor(matContours, matContours, Imgproc.COLOR_BayerBG2BGR);
-        Imgproc.drawContours(matRgba, contours, maxAreaIdx, new Scalar(0, 255, 0), 1);
-    }
-
-    // TODO: NOT ACCURATE !!!!!!!!!!!!!!!!!!!!!
-    private void findCircles() {
-        circles = new Mat();
-        Imgproc.blur(matGray, matGray, new Size(7, 7), new Point(2, 2));
-        Imgproc.HoughCircles(matGray, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 100, 100, 90, 500);
-        if (circles.cols() > 0) {
-            for (int i = 0; i < Math.min(circles.cols(), 5); i++) {
-                double[] vec = circles.get(0, i);
-                if (vec == null) break;
-                Point center = new Point((int) vec[0], (int) vec[1]);
-                int radius = (int) vec[2];
-                Imgproc.line(matRgba, center, center, new Scalar(255, 0, 0), 3);
-                Imgproc.circle(matRgba, center, radius, new Scalar(0, 255, 0), 1);
-            }
-        }
-        circles.release();
-        circles = null;
     }
 
     @Override
