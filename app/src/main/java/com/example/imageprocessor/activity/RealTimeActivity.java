@@ -25,8 +25,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -56,10 +56,11 @@ public class RealTimeActivity extends AppCompatActivity
     private final static int VIEW_MODE_CIRCLES = 4;
     private final static int VIEW_MODE_TRIANGLES = 5;
     private final static int VIEW_MODE_RECTANGLES = 6;
-    private final static int VIEW_MODE_PENTAGON = 7;
+    private final static int VIEW_MODE_PENTAGONS = 7;
+    private final static int VIEW_MODE_LINES = 8;
 
     private final static List<String> shapes = new ArrayList<>(
-            Arrays.asList("Line", "Triangle", "Rectangle", "Pentagon", "Circle")
+            Arrays.asList("Triangle", "Rectangle", "Pentagon", "Circle")
     );
 
     private static int thresh = 0;
@@ -83,6 +84,7 @@ public class RealTimeActivity extends AppCompatActivity
     private Mat matCanny;
     private Mat matContours;
     private Mat matShapes;
+    private Mat matCircles;
 
     private MatOfPoint2f approxCurve;
     private OpenCVUtil openCVUtil;
@@ -91,8 +93,6 @@ public class RealTimeActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        // Hide status bar
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_real_time);
 
         javaCameraView = findViewById(R.id.javaCameraView);
@@ -130,6 +130,7 @@ public class RealTimeActivity extends AppCompatActivity
         matCanny = new Mat(height, width, CvType.CV_8UC1);
         matContours = new Mat(height, width, CvType.CV_8UC4);
         matShapes = new Mat();
+        matCircles = new Mat();
 
         approxCurve = new MatOfPoint2f();
         openCVUtil = new OpenCVUtil();
@@ -142,6 +143,7 @@ public class RealTimeActivity extends AppCompatActivity
         matCanny.release();
         matContours.release();
         matShapes.release();
+        matCircles.release();
     }
 
     @Override
@@ -167,13 +169,14 @@ public class RealTimeActivity extends AppCompatActivity
                 break;
             case VIEW_MODE_TRIANGLES:
             case VIEW_MODE_RECTANGLES:
-            case VIEW_MODE_CIRCLES:
-            case VIEW_MODE_PENTAGON:
+            case VIEW_MODE_PENTAGONS:
                 matRgba = inputFrame.rgba();
                 Imgproc.cvtColor(inputFrame.rgba(), matShapes, Imgproc.COLOR_RGBA2GRAY);
                 Imgproc.Canny(matShapes, matShapes, thresh, thresh * 2);
                 findShapes();
                 break;
+            case VIEW_MODE_CIRCLES:
+                return findCircles(inputFrame);
             default:
                 break;
         }
@@ -224,42 +227,35 @@ public class RealTimeActivity extends AppCompatActivity
                         Imgproc.drawContours(matRgba, contours, i, new Scalar(0, 255, 0), -1);
 
                     } else if (vertices == 5 && mincos > -0.34 && maxcos <= -0.27
-                            && viewMode == VIEW_MODE_PENTAGON) {
+                            && viewMode == VIEW_MODE_PENTAGONS) {
                         Imgproc.drawContours(matRgba, contours, i, new Scalar(255, 0, 255), -1);
-                    }
-
-                } else if (vertices >= 10) {
-                    // TODO: Not accurate for circle !!!!!!!!!!!
-                    Rect rect = Imgproc.boundingRect(contour);
-                    int radius = rect.width / 2;
-                    if (Math.abs(1 - (rect.width / rect.height)) <= 0.2
-                            && Math.abs(1 - (contourArea / (Math.PI * radius * radius))) <= 0.2
-                            && viewMode == VIEW_MODE_CIRCLES) {
-                        Imgproc.drawContours(matRgba, contours, i, new Scalar(0, 255, 255), -1);
                     }
                 }
             }
         }
     }
 
-//    // TODO: NOT ACCURATE !!!!!!!!!!!!!!!!!!!!!
-//    private void findCircles() {
-//        circles = new Mat();
-//        Imgproc.blur(matGray, matGray, new Size(7, 7), new Point(2, 2));
-//        Imgproc.HoughCircles(matGray, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 100, 100, 90, 500);
-//        if (circles.cols() > 0) {
-//            for (int i = 0; i < Math.min(circles.cols(), 5); i++) {
-//                double[] vec = circles.get(0, i);
-//                if (vec == null) break;
-//                Point center = new Point((int) vec[0], (int) vec[1]);
-//                int radius = (int) vec[2];
-//                Imgproc.line(matRgba, center, center, new Scalar(255, 0, 0), 3);
-//                Imgproc.circle(matRgba, center, radius, new Scalar(0, 255, 0), 1);
-//            }
-//        }
-//        circles.release();
-//        circles = null;
-//    }
+    private Mat findCircles(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        Mat input = inputFrame.gray();
+        Mat circles = new Mat();
+        Imgproc.blur(input, input, new Size(7, 7), new Point(2, 2));
+        Imgproc.HoughCircles(input, circles, Imgproc.CV_HOUGH_GRADIENT,
+                2, 100, 200, 100, 0, 200);
+        if (circles.cols() > 0) {
+            for (int x=0; x < Math.min(circles.cols(), 5); x++ ) {
+                double[] vec = circles.get(0, x);
+                if (vec == null) break;
+                Point center = new Point((int) vec[0], (int) vec[1]);
+                int radius = (int) vec[2];
+
+                Imgproc.circle(input, center, 3, new Scalar(255, 255, 255), 5);
+                Imgproc.circle(input, center, radius, new Scalar(255, 255, 255), 2);
+            }
+        }
+        circles.release();
+        input.release();
+        return inputFrame.rgba();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -295,7 +291,7 @@ public class RealTimeActivity extends AppCompatActivity
             else if (shape.equalsIgnoreCase("rectangle"))
                 viewMode = VIEW_MODE_RECTANGLES;
             else if (shape.equalsIgnoreCase("pentagon"))
-                viewMode = VIEW_MODE_PENTAGON;
+                viewMode = VIEW_MODE_PENTAGONS;
             else if (shape.equalsIgnoreCase("circle"))
                 viewMode = VIEW_MODE_CIRCLES;
         }
