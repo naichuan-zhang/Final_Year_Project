@@ -4,6 +4,7 @@
       <w>addrs</w>
       <w>grayscale</w>
       <w>hough</w>
+      <w>preprocessing</w>
       <w>stitcher</w>
     </words>
   </dictionary>

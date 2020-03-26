@@ -87,4 +87,8 @@
     <string name="save">Save</string>
     <string name="capture">Capture</string>
     <string name="save_msg">Image has been saved</string>
+    <string name="triangle">Triangle</string>
+    <string name="quadrangle">Quadrangle</string>
+    <string name="pentagon">Pentagon</string>
+    <string name="circle">Circle</string>
 </resources>

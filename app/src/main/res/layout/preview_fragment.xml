@@ -15,37 +15,61 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2">
 
-        <Button
-            android:id="@+id/buttonEdit"
+        <CheckBox
+            android:id="@+id/triangleCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/edit"
+            android:text="@string/triangle"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/shapeSpinner"
+            app:layout_constraintEnd_toStartOf="@+id/quadrangleCheckBox"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/buttonDetect"
+        <CheckBox
+            android:id="@+id/quadrangleCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/detect"
-            app:layout_constraintBottom_toBottomOf="@+id/shapeSpinner"
+            android:text="@string/quadrangle"
+            app:layout_constraintBottom_toBottomOf="@+id/triangleCheckBox"
+            app:layout_constraintEnd_toStartOf="@+id/pentagonCheckBox"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/triangleCheckBox"
+            app:layout_constraintTop_toTopOf="@+id/triangleCheckBox" />
+
+        <CheckBox
+            android:id="@+id/pentagonCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pentagon"
+            app:layout_constraintBottom_toBottomOf="@+id/quadrangleCheckBox"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/shapeSpinner"
-            app:layout_constraintTop_toTopOf="@+id/shapeSpinner" />
+            app:layout_constraintStart_toEndOf="@+id/quadrangleCheckBox"
+            app:layout_constraintTop_toTopOf="@+id/quadrangleCheckBox" />
 
-        <Spinner
-            android:id="@+id/shapeSpinner"
+        <CheckBox
+            android:id="@+id/circleCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="@+id/buttonEdit"
-            app:layout_constraintEnd_toStartOf="@+id/buttonDetect"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/buttonEdit"
-            app:layout_constraintTop_toTopOf="@+id/buttonEdit" />
+            android:text="@string/circle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/quadrangleCheckBox" />
+
+        <SeekBar
+            android:id="@+id/threshSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:max="255"
+            app:layout_constraintBottom_toTopOf="@+id/quadrangleCheckBox"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -53,7 +77,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="600dp" />
+        app:layout_constraintGuide_begin="500dp" />
 
     <ImageView
         android:id="@+id/previewImageView"
@@ -67,13 +91,13 @@
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/image_placeholder" />
 
-    <ProgressBar
-        android:id="@+id/progressBarPreview"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+<!--    <ProgressBar-->
+<!--        android:id="@+id/progressBarPreview"-->
+<!--        style="?android:attr/progressBarStyle"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintBottom_toBottomOf="@+id/constraintLayout"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
 </androidx.constraintlayout.widget.ConstraintLayout>

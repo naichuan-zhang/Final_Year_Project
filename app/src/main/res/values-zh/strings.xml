@@ -85,4 +85,8 @@
     <string name="save">保存</string>
     <string name="capture">拍照</string>
     <string name="save_msg">图片已保存</string>
+    <string name="triangle">三角形</string>
+    <string name="quadrangle">四边形</string>
+    <string name="pentagon">五边形</string>
+    <string name="circle">圆形</string>
 </resources>
