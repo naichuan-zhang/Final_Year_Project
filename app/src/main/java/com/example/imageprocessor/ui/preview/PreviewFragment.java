@@ -29,6 +29,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -36,6 +37,7 @@ import org.opencv.imgproc.Moments;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -178,7 +180,6 @@ public class PreviewFragment extends Fragment
                     double d12 = getDistance(p1, p2);
                     double d13 = getDistance(p1, p3);
                     double d23 = getDistance(p2, p3);
-                    Toast.makeText(getContext(), d12 + " " + d13 + " " + d23, Toast.LENGTH_SHORT).show();
                     if (Math.abs(d12 - d13) <= 2 || Math.abs(d12 - d23) <= 2 || Math.abs(d13 - d23) <= 2) {
                         if (Math.abs(d12 - d13) <= 2 && Math.abs(d13 - d23) <= 2)
                             putLabel("Equilateral", center);
@@ -194,7 +195,56 @@ public class PreviewFragment extends Fragment
         previewImageView.setImageBitmap(outputBitmap);
     }
 
+    /**
+     * Square -> Rectangle -> Rhombus -> Parallelogram -> Trapezoid -> General
+     */
     private void findQuadrangles() {
+        MatOfPoint2f approxCurve = new MatOfPoint2f();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < contours.size(); i++) {
+            MatOfPoint contour = contours.get(i);
+            Rect rect = Imgproc.boundingRect(contour);
+            MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
+            Imgproc.approxPolyDP(curve, approxCurve, 0.02 * Imgproc.arcLength(curve, true), true);
+            int vertices = (int) approxCurve.total();
+            double contourArea = Imgproc.contourArea(contour);
+            if (Math.abs(contourArea) > 500) {
+                if (vertices == 4) {
+                    Point center = findCenter(contour);
+                    List<Double> angles = new ArrayList<>();
+                    List<Double> distances = new ArrayList<>();
+                    for (int j = 2; j < vertices + 1; j++) {
+                        angles.add(getAngle(
+                                approxCurve.toArray()[j % vertices],
+                                approxCurve.toArray()[j - 2],
+                                approxCurve.toArray()[j - 1]));
+                    }
+                    distances.add(getDistance(approxCurve.toArray()[0], approxCurve.toArray()[1]));
+                    distances.add(getDistance(approxCurve.toArray()[1], approxCurve.toArray()[2]));
+                    distances.add(getDistance(approxCurve.toArray()[2], approxCurve.toArray()[3]));
+                    distances.add(getDistance(approxCurve.toArray()[3], approxCurve.toArray()[0]));
+                    Collections.sort(angles);
+                    Collections.sort(distances);
+                    double minAngle = angles.get(0);
+                    double maxAngle = angles.get(angles.size() - 1);
+                    // Right angle 90 degree
+                    if (minAngle >= 85 && maxAngle <= 95) {
+                        // Distance
+                        if (Math.abs(distances.get(0) - distances.get(1)) <= 5
+                            && Math.abs(distances.get(1) - distances.get(2)) <= 5
+                            && Math.abs(distances.get(2) - distances.get(3)) <= 5
+                            && Math.abs(distances.get(3) - distances.get(0)) <= 5)
+                            putLabel("Square", center);
+                        else
+                            putLabel("Rectangle", center);
+                    }
+                }
+            }
+        }
+        // TODO: change to outputMat
+        Utils.matToBitmap(srcMat, outputBitmap);
+        previewImageView.setImageBitmap(outputBitmap);
     }
 
     private void findPentagons() {
@@ -221,6 +271,26 @@ public class PreviewFragment extends Fragment
             distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
         }
         return distance;
+    }
+
+    public double getAngle(Point pt1, Point pt2, Point pt0) {
+        double vertexPointX = pt0.x;
+        double vertexPointY = pt0.y;
+        double point0X = pt1.x;
+        double point0Y = pt1.y;
+        double point1X = pt2.x;
+        double point1Y = pt2.y;
+        //向量的点乘
+        int vector = (int) ((point0X - vertexPointX) * (point1X - vertexPointX) + (point0Y - vertexPointY) * (point1Y - vertexPointY));
+        //向量的模乘
+        double sqrt = Math.sqrt(
+                (Math.abs((point0X - vertexPointX) * (point0X - vertexPointX)) + Math.abs((point0Y - vertexPointY) * (point0Y - vertexPointY)))
+                        * (Math.abs((point1X - vertexPointX) * (point1X - vertexPointX)) + Math.abs((point1Y - vertexPointY) * (point1Y - vertexPointY)))
+        );
+        //反余弦计算弧度
+        double radian = Math.acos(vector / sqrt);
+        //弧度转角度制
+        return (int) (180 * radian / Math.PI);
     }
 
     private void putLabel(String text, Point org) {
