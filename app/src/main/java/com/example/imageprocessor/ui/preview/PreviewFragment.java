@@ -141,21 +141,25 @@ public class PreviewFragment extends Fragment
                     findTriangles();
                 else
                     previewImageView.setImageBitmap(bitmap);
+                break;
             case R.id.quadrangleCheckBox:
                 if (isChecked)
                     findQuadrangles();
                 else
                     previewImageView.setImageBitmap(bitmap);
+                break;
             case R.id.pentagonCheckBox:
                 if (isChecked)
                     findPentagons();
                 else
                     previewImageView.setImageBitmap(bitmap);
+                break;
             case R.id.circleCheckBox:
                 if (isChecked)
                     findCircles();
                 else
                     previewImageView.setImageBitmap(bitmap);
+                break;
             default:
                 break;
         }
@@ -196,7 +200,8 @@ public class PreviewFragment extends Fragment
     }
 
     /**
-     * Square -> Rectangle -> Rhombus -> Parallelogram -> Trapezoid -> General
+     * Order:
+     *     Square -> Rectangle -> Rhombus -> Parallelogram -> Trapezoid -> General
      */
     private void findQuadrangles() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
@@ -214,12 +219,12 @@ public class PreviewFragment extends Fragment
                     Point center = findCenter(contour);
                     List<Double> angles = new ArrayList<>();
                     List<Double> distances = new ArrayList<>();
-                    for (int j = 2; j < vertices + 1; j++) {
-                        angles.add(getAngle(
-                                approxCurve.toArray()[j % vertices],
-                                approxCurve.toArray()[j - 2],
-                                approxCurve.toArray()[j - 1]));
-                    }
+
+                    angles.add(getAngle(approxCurve.toArray()[2], approxCurve.toArray()[0], approxCurve.toArray()[1]));
+                    angles.add(getAngle(approxCurve.toArray()[3], approxCurve.toArray()[1], approxCurve.toArray()[2]));
+                    angles.add(getAngle(approxCurve.toArray()[0], approxCurve.toArray()[2], approxCurve.toArray()[3]));
+                    angles.add(getAngle(approxCurve.toArray()[1], approxCurve.toArray()[3], approxCurve.toArray()[0]));
+
                     distances.add(getDistance(approxCurve.toArray()[0], approxCurve.toArray()[1]));
                     distances.add(getDistance(approxCurve.toArray()[1], approxCurve.toArray()[2]));
                     distances.add(getDistance(approxCurve.toArray()[2], approxCurve.toArray()[3]));
@@ -228,16 +233,82 @@ public class PreviewFragment extends Fragment
                     Collections.sort(distances);
                     double minAngle = angles.get(0);
                     double maxAngle = angles.get(angles.size() - 1);
-                    // Right angle 90 degree
+                    // four angles = 90
                     if (minAngle >= 85 && maxAngle <= 95) {
-                        // Distance
-                        if (Math.abs(distances.get(0) - distances.get(1)) <= 5
-                            && Math.abs(distances.get(1) - distances.get(2)) <= 5
-                            && Math.abs(distances.get(2) - distances.get(3)) <= 5
-                            && Math.abs(distances.get(3) - distances.get(0)) <= 5)
+                        /*
+                          判定正方形和长方形
+                         */
+                        // check if four edges are equal
+                        if (Math.abs(distances.get(0) - distances.get(1)) <= 10
+                            && Math.abs(distances.get(1) - distances.get(2)) <= 10
+                            && Math.abs(distances.get(2) - distances.get(3)) <= 10
+                            && Math.abs(distances.get(3) - distances.get(0)) <= 10) {
                             putLabel("Square", center);
-                        else
+                        } else {
                             putLabel("Rectangle", center);
+                        }
+
+                        // 两个锐角，两个钝角
+                    } else if (minAngle < 90 && maxAngle > 90) {
+                        /*
+                          判定平行四边形，等腰梯形，菱形，Kite
+                         */
+                        // 两对对角都相等
+                        if ((Math.abs(angles.get(0) - angles.get(1)) <= 5 && Math.abs(angles.get(2) - angles.get(3)) <= 5)
+                                || (Math.abs(angles.get(0) - angles.get(2)) <= 5 && Math.abs(angles.get(1) - angles.get(3)) <= 5)
+                                || (Math.abs(angles.get(0) - angles.get(3)) <= 5 && Math.abs(angles.get(1) - angles.get(2)) <= 5)) {
+                            /*
+                              判定菱形，平行四边形，等腰梯形
+                             */
+                            // check if four edges are equal
+                            if (Math.abs(distances.get(0) - distances.get(1)) <= 5
+                                    && Math.abs(distances.get(1) - distances.get(2)) <= 5
+                                    && Math.abs(distances.get(2) - distances.get(3)) <= 5
+                                    && Math.abs(distances.get(3) - distances.get(0)) <= 5)
+                                putLabel("Rhombus", center);
+                            else {
+                                // 两对对边都平行
+                                if ((isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
+                                        && isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1]))
+                                    /*|| (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1])
+                                        && isParallel(approxCurve.toArray()[0], approxCurve.toArray()[2], approxCurve.toArray()[1], approxCurve.toArray()[3]))*/) {
+                                    putLabel("Parallelogram", center);
+                                } else if ((!isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
+                                        && isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1]))
+                                      || (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
+                                        && !isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1]))) {
+                                    putLabel("Isosceles Trapezoid", center);
+                                } else {
+                                    putLabel("Quadrangle", center);
+                                }
+                            }
+
+                            // 只有其中一对对角相等
+                        } else if (Math.abs(angles.get(0) - angles.get(1)) <= 10 || Math.abs(angles.get(0) - angles.get(2)) <= 10 ||
+                                Math.abs(angles.get(0) - angles.get(3)) <= 10 || Math.abs(angles.get(1) - angles.get(2)) <= 10 ||
+                                Math.abs(angles.get(1) - angles.get(3)) <= 10) {
+                            // 两对临边都相等
+                            if ((Math.abs(distances.get(0) - distances.get(1)) <= 10 && Math.abs(distances.get(2) - distances.get(3)) <= 10)
+                                || (Math.abs(distances.get(0) - distances.get(2)) <= 10 && Math.abs(distances.get(1) - distances.get(3)) <= 10)
+                                || (Math.abs(distances.get(0) - distances.get(3)) <= 10 && Math.abs(distances.get(1) - distances.get(2)) <= 10)) {
+                                putLabel("Kite", center);
+                            } else {
+                                putLabel("Quadrangle", center);
+                            }
+
+                            // 没有对角相等
+                        } else {
+                            // 有一对对边平行
+                            if (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
+                                    || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[0], approxCurve.toArray()[3])) {
+                                putLabel("Trapezoid", center);
+                            } else {
+                                putLabel("Quadrangle", center);
+                            }
+                        }
+
+                    } else {
+                        putLabel("Quadrangle", center);
                     }
                 }
             }
@@ -248,9 +319,54 @@ public class PreviewFragment extends Fragment
     }
 
     private void findPentagons() {
+        MatOfPoint2f approxCurve = new MatOfPoint2f();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < contours.size(); i++) {
+            MatOfPoint contour = contours.get(i);
+            MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
+            Imgproc.approxPolyDP(curve, approxCurve, 0.02 * Imgproc.arcLength(curve, true), true);
+            int vertices = (int) approxCurve.total();
+            double contourArea = Imgproc.contourArea(contour);
+            if (Math.abs(contourArea) > 500) {
+                if (vertices == 5) {
+                    Point center = findCenter(contour);
+                    putLabel("Pentagon", center);
+                }
+            }
+        }
+        // TODO: change to outputMat
+        Utils.matToBitmap(srcMat, outputBitmap);
+        previewImageView.setImageBitmap(outputBitmap);
     }
 
     private void findCircles() {
+        List<MatOfPoint> contours = new ArrayList<>();
+        List<Double> rates = new ArrayList<>();
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int idx = 0; idx < contours.size(); idx++) {
+            int count = 0;
+            MatOfPoint contour = contours.get(idx);
+            Point center = findCenter(contour);
+            Point[] points = contour.toArray();
+            double d0 = Math.sqrt(Math.pow(points[0].x - center.x, 2) + Math.pow(points[0].y - center.y, 2));
+            for (Point point : points) {
+                double dx = Math.sqrt(Math.pow(point.x - center.x, 2) + Math.pow(point.y - center.y, 2));
+                double rate = dx / d0;
+                rates.add(rate);
+            }
+            for (int i = 0; i < rates.size(); i++) {
+                if (rates.get(i) >= 0.9 && rates.get(i) <= 1.1)
+                    count++;
+            }
+            double percentage = count * 1.0 / rates.size() * 100;
+            Log.i(TAG, "The percentage is " + percentage + "%");
+            if (count * 1.0 / rates.size() >= 0.70)
+                putLabel("Circle", center, percentage);
+        }
+        // TODO: change to outputMat
+        Utils.matToBitmap(srcMat, outputBitmap);
+        previewImageView.setImageBitmap(outputBitmap);
     }
 
     private Point findCenter(MatOfPoint contour) {
@@ -261,6 +377,14 @@ public class PreviewFragment extends Fragment
         // TODO: change to outputMat
         Imgproc.circle(srcMat, center, 3, new Scalar(255, 0, 0));
         return center;
+    }
+
+    public boolean isParallel(Point P, Point Q, Point R, Point S) {
+        double x1 = P.x, x2 = Q.x, x3 = R.x, x4 = S.x;
+        double y1 = P.y, y2 = Q.y, y3 = R.y, y4 = S.y;
+
+        // check if lines PQ and RS are parallel
+        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 1e-10;
     }
 
     private double getDistance(Point p1, Point p2) {
@@ -280,22 +404,27 @@ public class PreviewFragment extends Fragment
         double point0Y = pt1.y;
         double point1X = pt2.x;
         double point1Y = pt2.y;
-        //向量的点乘
+        // 向量的点乘
         int vector = (int) ((point0X - vertexPointX) * (point1X - vertexPointX) + (point0Y - vertexPointY) * (point1Y - vertexPointY));
-        //向量的模乘
+        // 向量的模乘
         double sqrt = Math.sqrt(
                 (Math.abs((point0X - vertexPointX) * (point0X - vertexPointX)) + Math.abs((point0Y - vertexPointY) * (point0Y - vertexPointY)))
                         * (Math.abs((point1X - vertexPointX) * (point1X - vertexPointX)) + Math.abs((point1Y - vertexPointY) * (point1Y - vertexPointY)))
         );
-        //反余弦计算弧度
+        // 反余弦计算弧度
         double radian = Math.acos(vector / sqrt);
-        //弧度转角度制
+        // 弧度转角度制
         return (int) (180 * radian / Math.PI);
     }
 
     private void putLabel(String text, Point org) {
         // TODO: change to outputMat
         Imgproc.putText(srcMat, text, org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
+    }
+
+    private void putLabel(String text, Point org, double percentage) {
+        // TODO: change to outputMat
+        Imgproc.putText(srcMat, text + ": " + percentage + "%", org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
     }
 
     private void changeThresh(int thresh) {
