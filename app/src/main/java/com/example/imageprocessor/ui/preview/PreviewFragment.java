@@ -43,7 +43,7 @@ import java.util.Objects;
 
 public class PreviewFragment extends Fragment
         implements SeekBar.OnSeekBarChangeListener,
-        CompoundButton.OnCheckedChangeListener {
+            CompoundButton.OnCheckedChangeListener {
 
     private final static String TAG = "PreviewFragment: ";
 
@@ -68,6 +68,7 @@ public class PreviewFragment extends Fragment
 
     // to show detect results
     private Bitmap originalBitmap = null;
+    private Bitmap initBitmap = null;
     private Bitmap bitmap;
     private Bitmap outputBitmap;
     private Mat srcMat;
@@ -109,6 +110,7 @@ public class PreviewFragment extends Fragment
         // show original bitmap
         try {
             originalBitmap = Utility.getBitmap(uri, getContext(), from);
+            initBitmap = Utility.getBitmap(uri, getContext(), from);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -122,6 +124,10 @@ public class PreviewFragment extends Fragment
             previewImageView.setImageBitmap(originalBitmap);
         }
 
+        // init outputMat to show detect results
+        outputMat = new Mat();
+        Utils.bitmapToMat(originalBitmap, outputMat);
+
         // set init threshold
         threshSeekBar.setProgress(255 / 2);
         changeThresh(255 / 2);
@@ -129,40 +135,60 @@ public class PreviewFragment extends Fragment
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        // show original bitmap when a checkbox is unchecked
+        previewImageView.setImageBitmap(originalBitmap);
+
         // preprocessing
         srcMat = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC1);
         Utils.bitmapToMat(bitmap, srcMat);
         Imgproc.cvtColor(srcMat, srcMat, Imgproc.COLOR_BGRA2GRAY);
         Imgproc.blur(srcMat, srcMat, new Size(3, 3));
 
-        switch (buttonView.getId()) {
+        int id = buttonView.getId();
+        switch (id) {
             case R.id.triangleCheckBox:
-                if (isChecked)
+                if (isChecked) {
+                    clearOutputs();
+                    triangleCheckBox.setChecked(true);
+                    quadrangleCheckBox.setChecked(false);
+                    pentagonCheckBox.setChecked(false);
+                    circleCheckBox.setChecked(false);
                     findTriangles();
-                else
-                    previewImageView.setImageBitmap(bitmap);
-                break;
+                } break;
             case R.id.quadrangleCheckBox:
-                if (isChecked)
+                if (isChecked) {
+                    clearOutputs();
+                    triangleCheckBox.setChecked(false);
+                    quadrangleCheckBox.setChecked(true);
+                    pentagonCheckBox.setChecked(false);
+                    circleCheckBox.setChecked(false);
                     findQuadrangles();
-                else
-                    previewImageView.setImageBitmap(bitmap);
-                break;
+                } break;
             case R.id.pentagonCheckBox:
-                if (isChecked)
+                if (isChecked) {
+                    clearOutputs();
+                    triangleCheckBox.setChecked(false);
+                    quadrangleCheckBox.setChecked(false);
+                    pentagonCheckBox.setChecked(true);
+                    circleCheckBox.setChecked(false);
                     findPentagons();
-                else
-                    previewImageView.setImageBitmap(bitmap);
-                break;
+                } break;
             case R.id.circleCheckBox:
-                if (isChecked)
+                if (isChecked) {
+                    clearOutputs();
+                    triangleCheckBox.setChecked(false);
+                    quadrangleCheckBox.setChecked(false);
+                    pentagonCheckBox.setChecked(false);
+                    circleCheckBox.setChecked(true);
                     findCircles();
-                else
-                    previewImageView.setImageBitmap(bitmap);
-                break;
+                } break;
             default:
                 break;
         }
+    }
+
+    private void clearOutputs() {
+        Utils.bitmapToMat(originalBitmap, outputMat);
     }
 
     private void findTriangles() {
@@ -184,8 +210,8 @@ public class PreviewFragment extends Fragment
                     double d12 = getDistance(p1, p2);
                     double d13 = getDistance(p1, p3);
                     double d23 = getDistance(p2, p3);
-                    if (Math.abs(d12 - d13) <= 2 || Math.abs(d12 - d23) <= 2 || Math.abs(d13 - d23) <= 2) {
-                        if (Math.abs(d12 - d13) <= 2 && Math.abs(d13 - d23) <= 2)
+                    if (Math.abs(d12 - d13) <= 10 || Math.abs(d12 - d23) <= 10 || Math.abs(d13 - d23) <= 10) {
+                        if (Math.abs(d12 - d13) <= 10 && Math.abs(d13 - d23) <= 10)
                             putLabel("Equilateral", center);
                         else
                             putLabel("Isosceles", center);
@@ -194,8 +220,7 @@ public class PreviewFragment extends Fragment
                 }
             }
         }
-        // TODO: change to outputMat
-        Utils.matToBitmap(srcMat, outputBitmap);
+        Utils.matToBitmap(outputMat, outputBitmap);
         previewImageView.setImageBitmap(outputBitmap);
     }
 
@@ -313,8 +338,7 @@ public class PreviewFragment extends Fragment
                 }
             }
         }
-        // TODO: change to outputMat
-        Utils.matToBitmap(srcMat, outputBitmap);
+        Utils.matToBitmap(outputMat, outputBitmap);
         previewImageView.setImageBitmap(outputBitmap);
     }
 
@@ -335,8 +359,7 @@ public class PreviewFragment extends Fragment
                 }
             }
         }
-        // TODO: change to outputMat
-        Utils.matToBitmap(srcMat, outputBitmap);
+        Utils.matToBitmap(outputMat, outputBitmap);
         previewImageView.setImageBitmap(outputBitmap);
     }
 
@@ -349,10 +372,12 @@ public class PreviewFragment extends Fragment
             MatOfPoint contour = contours.get(idx);
             Point center = findCenter(contour);
             Point[] points = contour.toArray();
-            double d0 = Math.sqrt(Math.pow(points[0].x - center.x, 2) + Math.pow(points[0].y - center.y, 2));
+
+            // randomly pick a distance as a reference
+            double dist0 = getDistance(points[0], center);
             for (Point point : points) {
-                double dx = Math.sqrt(Math.pow(point.x - center.x, 2) + Math.pow(point.y - center.y, 2));
-                double rate = dx / d0;
+                double dist = getDistance(point, center);
+                double rate = dist / dist0;
                 rates.add(rate);
             }
             for (int i = 0; i < rates.size(); i++) {
@@ -361,11 +386,11 @@ public class PreviewFragment extends Fragment
             }
             double percentage = count * 1.0 / rates.size() * 100;
             Log.i(TAG, "The percentage is " + percentage + "%");
-            if (count * 1.0 / rates.size() >= 0.70)
+            if (percentage >= 60.0) {
                 putLabel("Circle", center, percentage);
+            }
         }
-        // TODO: change to outputMat
-        Utils.matToBitmap(srcMat, outputBitmap);
+        Utils.matToBitmap(outputMat, outputBitmap);
         previewImageView.setImageBitmap(outputBitmap);
     }
 
@@ -374,8 +399,7 @@ public class PreviewFragment extends Fragment
         Point center = new Point();
         center.x = moments.get_m10() / moments.get_m00();
         center.y = moments.get_m01() / moments.get_m00();
-        // TODO: change to outputMat
-        Imgproc.circle(srcMat, center, 3, new Scalar(255, 0, 0));
+        Imgproc.circle(outputMat, center, 3, new Scalar(255, 0, 0));
         return center;
     }
 
@@ -418,13 +442,11 @@ public class PreviewFragment extends Fragment
     }
 
     private void putLabel(String text, Point org) {
-        // TODO: change to outputMat
-        Imgproc.putText(srcMat, text, org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
+        Imgproc.putText(outputMat, text, org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
     }
 
     private void putLabel(String text, Point org, double percentage) {
-        // TODO: change to outputMat
-        Imgproc.putText(srcMat, text + ": " + percentage + "%", org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
+        Imgproc.putText(outputMat, text + ": " + percentage + "%", org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
     }
 
     private void changeThresh(int thresh) {
@@ -435,7 +457,7 @@ public class PreviewFragment extends Fragment
         Imgproc.Canny(src, src, thresh, thresh * THRESH_RATIO);
         // write the updated Mat to bitmap
         Utils.matToBitmap(src, bitmap);
-//        previewImageView.setImageBitmap(bitmap);
+        previewImageView.setImageBitmap(bitmap);
         Log.i(TAG, String.valueOf(thresh));
     }
 
