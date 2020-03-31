@@ -88,5 +88,9 @@
     <string name="triangle">三角形</string>
     <string name="quadrangle">四边形</string>
     <string name="pentagon">五边形</string>
+    <string name="hexagon">六边形</string>
     <string name="circle">圆形</string>
+    <string name="threshold">阈值</string>
+    <string name="show_canny">Canny图</string>
+    <string name="output_log">输出日志</string>
 </resources>

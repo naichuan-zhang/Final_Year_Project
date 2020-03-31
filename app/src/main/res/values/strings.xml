@@ -90,5 +90,10 @@
     <string name="triangle">Triangle</string>
     <string name="quadrangle">Quadrangle</string>
     <string name="pentagon">Pentagon</string>
+    <string name="hexagon">Hexagon</string>
     <string name="circle">Circle</string>
+    <string name="threshold">Threshold</string>
+    <string name="show_canny">Canny</string>
+    <string name="log">Log</string>
+    <string name="output_log">Output Log</string>
 </resources>

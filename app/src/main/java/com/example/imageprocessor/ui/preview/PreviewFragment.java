@@ -1,5 +1,7 @@
 package com.example.imageprocessor.ui.preview;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,11 +9,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.SeekBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,7 +22,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.imageprocessor.R;
-import com.example.imageprocessor.misc.OpenCVUtil;
 import com.example.imageprocessor.misc.Utility;
 
 import org.opencv.android.Utils;
@@ -58,9 +60,12 @@ public class PreviewFragment extends Fragment
     private CheckBox triangleCheckBox;
     private CheckBox quadrangleCheckBox;
     private CheckBox pentagonCheckBox;
+    private CheckBox hexagonCheckBox;
     private CheckBox circleCheckBox;
 
     private SeekBar threshSeekBar;
+
+    private Button logButton;
 
     // 1 -> gallery, 2 -> camera, 3 -> others
     private int from;
@@ -71,8 +76,15 @@ public class PreviewFragment extends Fragment
     private Bitmap initBitmap = null;
     private Bitmap bitmap;
     private Bitmap outputBitmap;
+
     private Mat srcMat;
     private Mat outputMat;
+
+    private StringBuilder detectResult = new StringBuilder();
+
+    public PreviewFragment() {
+    }
+
 
     public static PreviewFragment newInstance() {
         return new PreviewFragment();
@@ -87,14 +99,18 @@ public class PreviewFragment extends Fragment
         triangleCheckBox = root.findViewById(R.id.triangleCheckBox);
         quadrangleCheckBox = root.findViewById(R.id.quadrangleCheckBox);
         pentagonCheckBox = root.findViewById(R.id.pentagonCheckBox);
+        hexagonCheckBox = root.findViewById(R.id.hexagonCheckBox);
         circleCheckBox = root.findViewById(R.id.circleCheckBox);
         triangleCheckBox.setOnCheckedChangeListener(this);
         quadrangleCheckBox.setOnCheckedChangeListener(this);
         pentagonCheckBox.setOnCheckedChangeListener(this);
+        hexagonCheckBox.setOnCheckedChangeListener(this);
         circleCheckBox.setOnCheckedChangeListener(this);
 
         threshSeekBar = root.findViewById(R.id.threshSeekBar);
         threshSeekBar.setOnSeekBarChangeListener(this);
+
+        logButton = root.findViewById(R.id.logButton);
         return root;
     }
 
@@ -131,6 +147,29 @@ public class PreviewFragment extends Fragment
         // set init threshold
         threshSeekBar.setProgress(255 / 2);
         changeThresh(255 / 2);
+
+        // show log
+        logButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String message;
+                if (detectResult == null || detectResult.equals("")) {
+                    message = "No output log";
+                } else {
+                    message = detectResult.toString();
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle(getString(R.string.output_log))
+                        .setMessage(message)
+                        .setCancelable(true)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).create().show();
+            }
+        });
     }
 
     @Override
@@ -152,6 +191,7 @@ public class PreviewFragment extends Fragment
                     triangleCheckBox.setChecked(true);
                     quadrangleCheckBox.setChecked(false);
                     pentagonCheckBox.setChecked(false);
+                    hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(false);
                     findTriangles();
                 } break;
@@ -161,6 +201,7 @@ public class PreviewFragment extends Fragment
                     triangleCheckBox.setChecked(false);
                     quadrangleCheckBox.setChecked(true);
                     pentagonCheckBox.setChecked(false);
+                    hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(false);
                     findQuadrangles();
                 } break;
@@ -170,8 +211,19 @@ public class PreviewFragment extends Fragment
                     triangleCheckBox.setChecked(false);
                     quadrangleCheckBox.setChecked(false);
                     pentagonCheckBox.setChecked(true);
+                    hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(false);
                     findPentagons();
+                } break;
+            case R.id.hexagonCheckBox:
+                if (isChecked) {
+                    clearOutputs();
+                    triangleCheckBox.setChecked(false);
+                    quadrangleCheckBox.setChecked(false);
+                    pentagonCheckBox.setChecked(false);
+                    hexagonCheckBox.setChecked(true);
+                    circleCheckBox.setChecked(false);
+                    findHexagons();
                 } break;
             case R.id.circleCheckBox:
                 if (isChecked) {
@@ -179,6 +231,7 @@ public class PreviewFragment extends Fragment
                     triangleCheckBox.setChecked(false);
                     quadrangleCheckBox.setChecked(false);
                     pentagonCheckBox.setChecked(false);
+                    hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(true);
                     findCircles();
                 } break;
@@ -189,12 +242,14 @@ public class PreviewFragment extends Fragment
 
     private void clearOutputs() {
         Utils.bitmapToMat(originalBitmap, outputMat);
+        // clear up detect results
+        detectResult.delete(0, detectResult.length());
     }
 
     private void findTriangles() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
@@ -211,12 +266,20 @@ public class PreviewFragment extends Fragment
                     double d13 = getDistance(p1, p3);
                     double d23 = getDistance(p2, p3);
                     if (Math.abs(d12 - d13) <= 10 || Math.abs(d12 - d23) <= 10 || Math.abs(d13 - d23) <= 10) {
-                        if (Math.abs(d12 - d13) <= 10 && Math.abs(d13 - d23) <= 10)
+                        if (Math.abs(d12 - d13) <= 10 && Math.abs(d13 - d23) <= 10) {
                             putLabel("Equilateral", center);
-                        else
+                            Log.i(TAG, "Equilateral Triangle detected");
+                            detectResult.append("Equilateral Triangle detected\n");
+                        } else {
                             putLabel("Isosceles", center);
-                    } else
-                        putLabel("Triangle", center);
+                            Log.i(TAG, "Isosceles Triangle detected");
+                            detectResult.append("Isosceles Triangle detected\n");
+                        }
+                    } else {
+                        putLabel("Scalene", center);
+                        Log.i(TAG, "Scalene Triangle detected");
+                        detectResult.append("Scalene Triangle detected\n");
+                    }
                 }
             }
         }
@@ -231,7 +294,7 @@ public class PreviewFragment extends Fragment
     private void findQuadrangles() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             Rect rect = Imgproc.boundingRect(contour);
@@ -269,16 +332,20 @@ public class PreviewFragment extends Fragment
                             && Math.abs(distances.get(2) - distances.get(3)) <= 10
                             && Math.abs(distances.get(3) - distances.get(0)) <= 10) {
                             putLabel("Square", center);
+                            Log.i(TAG, "Square detected");
+                            detectResult.append("Square detected\n");
                         } else {
                             putLabel("Rectangle", center);
+                            Log.i(TAG, "Rectangle detected");
+                            detectResult.append("Rectangle detected\n");
                         }
 
-                        // 两个锐角，两个钝角
+                    // 两个锐角，两个钝角
                     } else if (minAngle < 90 && maxAngle > 90) {
                         /*
                           判定平行四边形，等腰梯形，菱形，Kite
                          */
-                        // 两对对角都相等
+                        // 两对对角或邻角都相等 - 至少有两对！
                         if ((Math.abs(angles.get(0) - angles.get(1)) <= 5 && Math.abs(angles.get(2) - angles.get(3)) <= 5)
                                 || (Math.abs(angles.get(0) - angles.get(2)) <= 5 && Math.abs(angles.get(1) - angles.get(3)) <= 5)
                                 || (Math.abs(angles.get(0) - angles.get(3)) <= 5 && Math.abs(angles.get(1) - angles.get(2)) <= 5)) {
@@ -289,26 +356,36 @@ public class PreviewFragment extends Fragment
                             if (Math.abs(distances.get(0) - distances.get(1)) <= 5
                                     && Math.abs(distances.get(1) - distances.get(2)) <= 5
                                     && Math.abs(distances.get(2) - distances.get(3)) <= 5
-                                    && Math.abs(distances.get(3) - distances.get(0)) <= 5)
+                                    && Math.abs(distances.get(3) - distances.get(0)) <= 5) {
                                 putLabel("Rhombus", center);
-                            else {
-                                // 两对对边都平行
+                                Log.i(TAG, "Rhombus detected");
+                                detectResult.append("Rhombus detected\n");
+                            } else {
+                                // 有两对对边都平行
                                 if ((isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
                                         && isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1]))
                                     /*|| (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1])
                                         && isParallel(approxCurve.toArray()[0], approxCurve.toArray()[2], approxCurve.toArray()[1], approxCurve.toArray()[3]))*/) {
                                     putLabel("Parallelogram", center);
+                                    Log.i(TAG, "Parallelogram detected");
+                                    detectResult.append("Parallelogram detected\n");
+
+                                // 只有一对对边平行
                                 } else if ((!isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
                                         && isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1]))
                                       || (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
                                         && !isParallel(approxCurve.toArray()[0], approxCurve.toArray()[3], approxCurve.toArray()[2], approxCurve.toArray()[1]))) {
                                     putLabel("Isosceles Trapezoid", center);
+                                    Log.i(TAG, "Isosceles Trapezoid detected");
+                                    detectResult.append("Isosceles Trapezoid detected\n");
                                 } else {
-                                    putLabel("Quadrangle", center);
+                                    putLabel("Irregular", center);
+                                    Log.i(TAG, "Irregular Quadrangle detected");
+                                    detectResult.append("Irregular Quadrangle detected\n");
                                 }
                             }
 
-                            // 只有其中一对对角相等
+                        // 只有其中一对对角相等
                         } else if (Math.abs(angles.get(0) - angles.get(1)) <= 10 || Math.abs(angles.get(0) - angles.get(2)) <= 10 ||
                                 Math.abs(angles.get(0) - angles.get(3)) <= 10 || Math.abs(angles.get(1) - angles.get(2)) <= 10 ||
                                 Math.abs(angles.get(1) - angles.get(3)) <= 10) {
@@ -317,23 +394,33 @@ public class PreviewFragment extends Fragment
                                 || (Math.abs(distances.get(0) - distances.get(2)) <= 10 && Math.abs(distances.get(1) - distances.get(3)) <= 10)
                                 || (Math.abs(distances.get(0) - distances.get(3)) <= 10 && Math.abs(distances.get(1) - distances.get(2)) <= 10)) {
                                 putLabel("Kite", center);
+                                Log.i(TAG, "Kite detected");
+                                detectResult.append("Kite detected\n");
                             } else {
-                                putLabel("Quadrangle", center);
+                                putLabel("Irregular", center);
+                                Log.i(TAG, "Irregular Quadrangle detected");
+                                detectResult.append("Irregular Quadrangle detected\n");
                             }
 
-                            // 没有对角相等
+                        // 没有对角相等
                         } else {
                             // 有一对对边平行
                             if (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
                                     || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[0], approxCurve.toArray()[3])) {
                                 putLabel("Trapezoid", center);
+                                Log.i(TAG, "Trapezoid detected");
+                                detectResult.append("Trapezoid detected\n");
                             } else {
-                                putLabel("Quadrangle", center);
+                                putLabel("Irregular", center);
+                                Log.i(TAG, "Irregular Quadrangle detected");
+                                detectResult.append("Irregular Quadrangle detected\n");
                             }
                         }
 
                     } else {
-                        putLabel("Quadrangle", center);
+                        putLabel("Irregular", center);
+                        Log.i(TAG, "Irregular Quadrangle detected");
+                        detectResult.append("Irregular Quadrangle detected\n");
                     }
                 }
             }
@@ -345,7 +432,7 @@ public class PreviewFragment extends Fragment
     private void findPentagons() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
@@ -356,6 +443,31 @@ public class PreviewFragment extends Fragment
                 if (vertices == 5) {
                     Point center = findCenter(contour);
                     putLabel("Pentagon", center);
+                    Log.i(TAG, "Pentagon detected");
+                    detectResult.append("Pentagon detected\n");
+                }
+            }
+        }
+        Utils.matToBitmap(outputMat, outputBitmap);
+        previewImageView.setImageBitmap(outputBitmap);
+    }
+
+    private void findHexagons() {
+        MatOfPoint2f approxCurve = new MatOfPoint2f();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < contours.size(); i++) {
+            MatOfPoint contour = contours.get(i);
+            MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
+            Imgproc.approxPolyDP(curve, approxCurve, 0.02 * Imgproc.arcLength(curve, true), true);
+            int vertices = (int) approxCurve.total();
+            double contourArea = Imgproc.contourArea(contour);
+            if (Math.abs(contourArea) > 500) {
+                if (vertices == 6) {
+                    Point center = findCenter(contour);
+                    putLabel("Hexagon", center);
+                    Log.i(TAG, "Hexagon detected");
+                    detectResult.append("Hexagon detected\n");
                 }
             }
         }
@@ -385,9 +497,10 @@ public class PreviewFragment extends Fragment
                     count++;
             }
             double percentage = count * 1.0 / rates.size() * 100;
-            Log.i(TAG, "The percentage is " + percentage + "%");
             if (percentage >= 60.0) {
                 putLabel("Circle", center, percentage);
+                Log.i(TAG, "The percentage is " + percentage + "%");
+                detectResult.append("Circle " + percentage + "% detected\n");
             }
         }
         Utils.matToBitmap(outputMat, outputBitmap);
@@ -442,11 +555,13 @@ public class PreviewFragment extends Fragment
     }
 
     private void putLabel(String text, Point org) {
-        Imgproc.putText(outputMat, text, org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
+        Imgproc.putText(outputMat, text, org, Core.FONT_HERSHEY_COMPLEX,
+                0.5, new Scalar(255, 0, 0));
     }
 
     private void putLabel(String text, Point org, double percentage) {
-        Imgproc.putText(outputMat, text + ": " + percentage + "%", org, Core.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(255, 0, 0), 2);
+        Imgproc.putText(outputMat, text + ": " + percentage + "%", org, Core.FONT_HERSHEY_COMPLEX,
+                0.5, new Scalar(255, 0, 0));
     }
 
     private void changeThresh(int thresh) {
@@ -468,6 +583,7 @@ public class PreviewFragment extends Fragment
         triangleCheckBox.setChecked(false);
         quadrangleCheckBox.setChecked(false);
         pentagonCheckBox.setChecked(false);
+        hexagonCheckBox.setChecked(false);
         circleCheckBox.setChecked(false);
     }
 
