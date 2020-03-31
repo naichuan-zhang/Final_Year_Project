@@ -8,4 +8,12 @@
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorGray">#33000000</color>
     <color name="buttonBackground">#66B9F9</color>
+
+    <color name="homeBackground">#F9F6E6</color>
+    <color name="deepPurple">#7C4DFF</color>
+    <color name="yellow">#FFB300</color>
+    <color name="green">#00BFA5</color>
+    <color name="blue">#87CEEB</color>
+    <color name="pink">#FF4081</color>
+    <color name="lightGray">#EDEDED</color>
 </resources>

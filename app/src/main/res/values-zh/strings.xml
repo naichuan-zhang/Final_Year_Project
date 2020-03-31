@@ -92,5 +92,15 @@
     <string name="circle">圆形</string>
     <string name="threshold">阈值</string>
     <string name="show_canny">Canny图</string>
+    <string name="log">日志</string>
     <string name="output_log">输出日志</string>
+    <string name="camera_msg">选择一个相机类型</string>
+    <string name="gallery">相册</string>
+    <string name="gallery_msg">选择一个相册类型</string>
+    <string name="settings">设置</string>
+    <string name="settings_msg">夜间模式，语言国际化等</string>
+    <string name="history">历史记录</string>
+    <string name="history_msg">浏览过去保存过的图片</string>
+    <string name="stitcher">图像拼接</string>
+    <string name="stitcher_msg">一款实用的图像拼接工具</string>
 </resources>

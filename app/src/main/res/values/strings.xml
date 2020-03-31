@@ -96,4 +96,13 @@
     <string name="show_canny">Canny</string>
     <string name="log">Log</string>
     <string name="output_log">Output Log</string>
+    <string name="camera_msg">Choose a camera type</string>
+    <string name="gallery">Gallery</string>
+    <string name="gallery_msg">Choose a gallery type</string>
+    <string name="settings">Settings</string>
+    <string name="settings_msg">Config dark mode, internationalization, etc.</string>
+    <string name="history">History</string>
+    <string name="history_msg">View saved images in the past</string>
+    <string name="stitcher">Stitcher</string>
+    <string name="stitcher_msg">An image stitching tool</string>
 </resources>
