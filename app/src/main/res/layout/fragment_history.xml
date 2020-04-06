@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="2dp"
-    android:id="@+id/swipeRefreshLayoutHistory">
+    android:id="@+id/swipeRefreshLayoutHistory"
+    android:background="@color/homeBackground">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewHistory"

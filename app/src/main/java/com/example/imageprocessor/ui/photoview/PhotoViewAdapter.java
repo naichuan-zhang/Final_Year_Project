@@ -34,7 +34,7 @@ public class PhotoViewAdapter extends ListAdapter<Image, PhotoViewAdapter.PhotoV
 
     @Override
     public void onBindViewHolder(@NonNull PhotoViewViewHolder holder, int position) {
-        Glide.with(holder.itemView)
+        Glide.with(holder.itemView).asBitmap()
                 .load(getItem(position).getImageUri())
                 .placeholder(R.drawable.image_placeholder)
                 .into(holder.photoView);
