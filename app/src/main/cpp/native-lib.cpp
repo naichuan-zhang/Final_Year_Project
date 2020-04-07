@@ -4,12 +4,16 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <android/log.h>
 
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/core.hpp"
 #include "opencv2/stitching.hpp"
+
+#define TAG "native-lib"
+#define LOG(...)  __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 
 using namespace cv;
 using namespace std;
@@ -35,12 +39,15 @@ Java_com_example_imageprocessor_ui_stitcher_StitcherFragment_stitchImages(JNIEnv
         resize(newImage, newImage,
                 Size(scale * curImage.rows, scale * curImage.cols));
         imageVector.push_back(newImage);
+        LOG("Add a new image...");
     }
 
     Mat & result = *(Mat*) outputAddress;
     Stitcher stitcher = Stitcher::createDefault();
     stitcher.stitch(imageVector, result);
+    LOG("After stitching...");
     env->ReleaseLongArrayElements(imageAddressArray, imageAddresses, 0);
+
 
 }
 

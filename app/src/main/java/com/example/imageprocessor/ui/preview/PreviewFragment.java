@@ -15,6 +15,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -294,7 +295,7 @@ public class PreviewFragment extends Fragment
     private void findQuadrangles() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             Rect rect = Imgproc.boundingRect(contour);
@@ -378,17 +379,20 @@ public class PreviewFragment extends Fragment
                                     putLabel("Isosceles Trapezoid", center);
                                     Log.i(TAG, "Isosceles Trapezoid detected");
                                     detectResult.append("Isosceles Trapezoid detected\n");
+
+                                // 没有对边平行
                                 } else {
+                                    Toast.makeText(getContext(), "" + approxCurve.toArray()[0] + "," + approxCurve.toArray()[1]+ approxCurve.toArray()[2] + "," + approxCurve.toArray()[3], Toast.LENGTH_SHORT).show();
                                     putLabel("Irregular", center);
-                                    Log.i(TAG, "Irregular Quadrangle detected");
-                                    detectResult.append("Irregular Quadrangle detected\n");
+                                    Log.i(TAG, "Irregular Quadrangle 1 detected");
+                                    detectResult.append("Irregular Quadrangle1 detected\n");
                                 }
                             }
 
                         // 只有其中一对对角相等
                         } else if (Math.abs(angles.get(0) - angles.get(1)) <= 10 || Math.abs(angles.get(0) - angles.get(2)) <= 10 ||
                                 Math.abs(angles.get(0) - angles.get(3)) <= 10 || Math.abs(angles.get(1) - angles.get(2)) <= 10 ||
-                                Math.abs(angles.get(1) - angles.get(3)) <= 10) {
+                                Math.abs(angles.get(1) - angles.get(3)) <= 10 || Math.abs(angles.get(2) - angles.get(3)) <= 10) {
                             // 两对临边都相等
                             if ((Math.abs(distances.get(0) - distances.get(1)) <= 10 && Math.abs(distances.get(2) - distances.get(3)) <= 10)
                                 || (Math.abs(distances.get(0) - distances.get(2)) <= 10 && Math.abs(distances.get(1) - distances.get(3)) <= 10)
@@ -398,29 +402,30 @@ public class PreviewFragment extends Fragment
                                 detectResult.append("Kite detected\n");
                             } else {
                                 putLabel("Irregular", center);
-                                Log.i(TAG, "Irregular Quadrangle detected");
-                                detectResult.append("Irregular Quadrangle detected\n");
+                                Log.i(TAG, "Irregular Quadrangle 2 detected");
+                                detectResult.append("Irregular Quadrangle2 detected\n");
                             }
 
                         // 没有对角相等
                         } else {
                             // 有一对对边平行
                             if (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
-                                    || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[0], approxCurve.toArray()[3])) {
+                                    || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[0], approxCurve.toArray()[3])
+                                    || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[3], approxCurve.toArray()[0], approxCurve.toArray()[2])) {
                                 putLabel("Trapezoid", center);
                                 Log.i(TAG, "Trapezoid detected");
                                 detectResult.append("Trapezoid detected\n");
                             } else {
                                 putLabel("Irregular", center);
-                                Log.i(TAG, "Irregular Quadrangle detected");
-                                detectResult.append("Irregular Quadrangle detected\n");
+                                Log.i(TAG, "Irregular Quadrangle 3 detected");
+                                detectResult.append("Irregular Quadrangle3 detected\n");
                             }
                         }
 
                     } else {
                         putLabel("Irregular", center);
-                        Log.i(TAG, "Irregular Quadrangle detected");
-                        detectResult.append("Irregular Quadrangle detected\n");
+                        Log.i(TAG, "Irregular Quadrangle 4 detected");
+                        detectResult.append("Irregular Quadrangle4 detected\n");
                     }
                 }
             }
@@ -516,12 +521,22 @@ public class PreviewFragment extends Fragment
         return center;
     }
 
+//    @Deprecated
+//    public boolean isParallel(Point P, Point Q, Point R, Point S) {
+//        double x1 = P.x, x2 = Q.x, x3 = R.x, x4 = S.x;
+//        double y1 = P.y, y2 = Q.y, y3 = R.y, y4 = S.y;
+//
+//        // check if lines PQ and RS are parallel
+//        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 10;   // TODO: 10 -> 1e-10
+//    }
+
     public boolean isParallel(Point P, Point Q, Point R, Point S) {
         double x1 = P.x, x2 = Q.x, x3 = R.x, x4 = S.x;
         double y1 = P.y, y2 = Q.y, y3 = R.y, y4 = S.y;
+        double slopeRS = (y3 - y4) / (x3 - x4);
+        double slopePQ = (y1 - y2) / (x1 - x2);
 
-        // check if lines PQ and RS are parallel
-        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 1e-10;
+        return Math.abs(slopeRS - slopePQ) < 1;
     }
 
     private double getDistance(Point p1, Point p2) {
