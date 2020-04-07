@@ -527,7 +527,7 @@ public class PreviewFragment extends Fragment
 //        double y1 = P.y, y2 = Q.y, y3 = R.y, y4 = S.y;
 //
 //        // check if lines PQ and RS are parallel
-//        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 10;   // TODO: 10 -> 1e-10
+//        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 10;
 //    }
 
     public boolean isParallel(Point P, Point Q, Point R, Point S) {
@@ -536,6 +536,7 @@ public class PreviewFragment extends Fragment
         double slopeRS = (y3 - y4) / (x3 - x4);
         double slopePQ = (y1 - y2) / (x1 - x2);
 
+        // check if lines PQ and RS are parallel
         return Math.abs(slopeRS - slopePQ) < 1;
     }
 
