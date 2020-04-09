@@ -400,6 +400,13 @@ public class PreviewFragment extends Fragment
                                 putLabel("Kite", center);
                                 Log.i(TAG, "Kite detected");
                                 detectResult.append("Kite detected\n");
+                            // 有一对直角，并且有一对对边相互平行
+                            } else if (isParallel(approxCurve.toArray()[0], approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[3])
+                                    || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[2], approxCurve.toArray()[0], approxCurve.toArray()[3])
+                                    || isParallel(approxCurve.toArray()[1], approxCurve.toArray()[3], approxCurve.toArray()[0], approxCurve.toArray()[2])) {
+                                putLabel("Trapezoid", center);
+                                Log.i(TAG, "Trapezoid detected");
+                                detectResult.append("Trapezoid detected\n");
                             } else {
                                 putLabel("Irregular", center);
                                 Log.i(TAG, "Irregular Quadrangle 2 detected");
@@ -537,7 +544,7 @@ public class PreviewFragment extends Fragment
         double slopePQ = (y1 - y2) / (x1 - x2);
 
         // check if lines PQ and RS are parallel
-        return Math.abs(slopeRS - slopePQ) < 1;
+        return Math.abs(slopeRS - slopePQ) < 0.1;
     }
 
     private double getDistance(Point p1, Point p2) {
@@ -558,11 +565,14 @@ public class PreviewFragment extends Fragment
         double point1X = pt2.x;
         double point1Y = pt2.y;
         // 向量的点乘
-        int vector = (int) ((point0X - vertexPointX) * (point1X - vertexPointX) + (point0Y - vertexPointY) * (point1Y - vertexPointY));
+        int vector = (int) ((point0X - vertexPointX) * (point1X - vertexPointX)
+                + (point0Y - vertexPointY) * (point1Y - vertexPointY));
         // 向量的模乘
         double sqrt = Math.sqrt(
-                (Math.abs((point0X - vertexPointX) * (point0X - vertexPointX)) + Math.abs((point0Y - vertexPointY) * (point0Y - vertexPointY)))
-                        * (Math.abs((point1X - vertexPointX) * (point1X - vertexPointX)) + Math.abs((point1Y - vertexPointY) * (point1Y - vertexPointY)))
+                (Math.abs((point0X - vertexPointX) * (point0X - vertexPointX))
+                        + Math.abs((point0Y - vertexPointY) * (point0Y - vertexPointY)))
+                        * (Math.abs((point1X - vertexPointX) * (point1X - vertexPointX))
+                        + Math.abs((point1Y - vertexPointY) * (point1Y - vertexPointY)))
         );
         // 反余弦计算弧度
         double radian = Math.acos(vector / sqrt);
