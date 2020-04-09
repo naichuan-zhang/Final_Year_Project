@@ -103,4 +103,15 @@
     <string name="history_msg">浏览过去保存过的图片</string>
     <string name="stitcher">图像拼接</string>
     <string name="stitcher_msg">一款实用的图像拼接工具</string>
+    <string name="my_final_year_project">我的大学毕业设计</string>
+    <string name="info">信息</string>
+    <string name="naichuan_zhang">张乃川</string>
+    <string name="author">作者</string>
+    <string name="github_link">https://github.com/naichuan-zhang</string>
+    <string name="github_link_text">Github网址</string>
+    <string name="email_address">电子邮箱</string>
+    <string name="email">18111521@studentmail.ul.ie</string>
+    <string name="phone_number">(+353)833955546</string>
+    <string name="mobile_phone">移动电话</string>
+    <string name="view_project_details">查看项目详情</string>
 </resources>

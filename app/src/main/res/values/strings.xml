@@ -105,4 +105,15 @@
     <string name="history_msg">View saved images in the past</string>
     <string name="stitcher">Stitcher</string>
     <string name="stitcher_msg">An image stitching tool</string>
+    <string name="my_final_year_project">My Final Year Project</string>
+    <string name="info">Info</string>
+    <string name="naichuan_zhang">Naichuan Zhang</string>
+    <string name="author">Author</string>
+    <string name="github_link">https://github.com/naichuan-zhang</string>
+    <string name="github_link_text">Github Link</string>
+    <string name="email_address">Email Address</string>
+    <string name="email">18111521@studentmail.ul.ie</string>
+    <string name="phone_number">(+353)833955546</string>
+    <string name="mobile_phone">Mobile Phone</string>
+    <string name="view_project_details">View Project Details</string>
 </resources>

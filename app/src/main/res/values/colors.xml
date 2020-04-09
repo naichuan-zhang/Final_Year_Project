@@ -16,4 +16,7 @@
     <color name="blue">#87CEEB</color>
     <color name="pink">#FF4081</color>
     <color name="lightGray">#EDEDED</color>
+
+    <color name="startColor">#EBEADB</color>
+    <color name="endColor">#F6F6F6</color>
 </resources>
