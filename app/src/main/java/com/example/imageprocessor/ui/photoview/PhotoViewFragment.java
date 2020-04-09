@@ -1,7 +1,9 @@
 package com.example.imageprocessor.ui.photoview;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -98,19 +100,30 @@ public class PhotoViewFragment extends Fragment {
             PhotoView photoView = holder.photoView;
             Log.i(TAG, "photoView: " + photoView);
             if (photoView != null) {
-                BitmapDrawable drawable = (BitmapDrawable) photoView.getDrawable();
-                Log.i(TAG, "drawable: " + drawable);
-                Bitmap bitmap = drawable.getBitmap();
-                Log.i(TAG, "bitmap: " + bitmap);
-                if (MediaStore.Images.Media.insertImage(requireContext().getContentResolver(),
-                        bitmap, "", "") != null) {
-                    Toast.makeText(requireContext(), getString(R.string.save_success), Toast.LENGTH_SHORT).show();
-                } else {
+                try {
+                    Bitmap bitmap = getBitmapFromDrawable(photoView.getDrawable());
+                    if (MediaStore.Images.Media.insertImage(requireContext().getContentResolver(),
+                            bitmap, "", "") != null) {
+                        Toast.makeText(requireContext(), getString(R.string.save_success), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                     Toast.makeText(requireContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Toast.makeText(requireContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private Bitmap getBitmapFromDrawable(@NonNull Drawable drawable) {
+        final Bitmap bitmap = Bitmap.createBitmap(
+                drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 }
