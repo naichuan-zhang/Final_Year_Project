@@ -46,7 +46,7 @@ public class Image implements Parcelable {
         this.imageSource = imageSource;
     }
 
-    protected Image(Parcel in) {
+    public Image(Parcel in) {
         imageID = in.readInt();
         imageName = in.readString();
         imageDate = in.readString();
