@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -382,7 +381,6 @@ public class PreviewFragment extends Fragment
 
                                 // 没有对边平行
                                 } else {
-                                    Toast.makeText(getContext(), "" + approxCurve.toArray()[0] + "," + approxCurve.toArray()[1]+ approxCurve.toArray()[2] + "," + approxCurve.toArray()[3], Toast.LENGTH_SHORT).show();
                                     putLabel("Irregular", center);
                                     Log.i(TAG, "Irregular Quadrangle 1 detected");
                                     detectResult.append("Irregular Quadrangle1 detected\n");
@@ -588,6 +586,10 @@ public class PreviewFragment extends Fragment
     private void putLabel(String text, Point org, double percentage) {
         Imgproc.putText(outputMat, text + ": " + percentage + "%", org, Core.FONT_HERSHEY_COMPLEX,
                 0.5, new Scalar(255, 0, 0));
+    }
+
+    private void drawContour(List<MatOfPoint> contours, int contourIdx) {
+        Imgproc.drawContours(outputMat, contours, contourIdx, new Scalar(255, 0, 0), 2);
     }
 
     private void changeThresh(int thresh) {

@@ -4,15 +4,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,12 +31,12 @@ import com.example.imageprocessor.room.ImageViewModel;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,6 +54,12 @@ public class StitcherFragment extends Fragment {
 
     private final static String TAG = "StitchingActivity: ";
 
+    private final static int OK = 0;
+    private final static int ERR_NEED_MORE_IMGS = 1;
+    private final static int ERR_HOMOGRAPHY_EST_FAIL = 2;
+    private final static int ERR_CAMERA_PARAMS_ADJUST_FAIL = 3;
+    private final static int ERR_OTHER = 4;
+
     private static int num = 1;
 
     private StitcherViewModel stitcherViewModel;
@@ -71,6 +73,8 @@ public class StitcherFragment extends Fragment {
 
     private List<Mat> images = new ArrayList<>();
     private Uri uri;
+
+    private Mat src;
 
     public StitcherFragment() {
     }
@@ -137,38 +141,81 @@ public class StitcherFragment extends Fragment {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 new Thread(new Runnable() {
+
                     @Override
                     public void run() {
-                        showProcessingDialog();
-                        processImage();
-                        closeProcessingDialog();
+                        Looper.prepare();
+                        if (images.size() == 0) {
+                            Toast.makeText(getContext(), "No images captured", Toast.LENGTH_SHORT).show();
+                        } else if (images.size() == 1) {
+                            Toast.makeText(getContext(), "Only one image captured", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showProcessingDialog();
+                            int status = processImage();
+                            closeProcessingDialog();
+                            switch (status) {
+                                case OK:
+                                    Toast.makeText(getContext(), "Stitched image has been saved successfully",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                case ERR_NEED_MORE_IMGS:
+                                    Toast.makeText(getContext(), "Error: Need more images",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                case ERR_HOMOGRAPHY_EST_FAIL:
+                                    Toast.makeText(getContext(), "Error: Homography estimation failed",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                case ERR_CAMERA_PARAMS_ADJUST_FAIL:
+                                    Toast.makeText(getContext(), "Error: Camera parameter adjustment failed",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                case ERR_OTHER:
+                                    Toast.makeText(getContext(), "Error: An unknown error occurred",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        Looper.loop();
                     }
                 }).start();
             }
         });
     }
 
-    private void processImage() {
+    private int processImage() {
         try {
-            int size = images.size();
-            long[] objAddrs = new long[size];
-            for (int i = 0; i < size; i++)
-                objAddrs[i] = images.get(i).getNativeObjAddr();
-            Mat result = new Mat();
-            stitchImages(objAddrs, result.getNativeObjAddr());
-            Log.i(TAG, Arrays.toString(objAddrs));
-            // Save the image to Room DB
-            Bitmap bitmap = Bitmap.createBitmap(result.cols(), result.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(result, bitmap);
+            Mat srcRes = new Mat();
+            int status = stitchImages(images.toArray(), images.size(), srcRes.getNativeObjAddr());
+            Log.i(TAG, "rows: " + srcRes.rows() + " cols: " + srcRes.cols() + " success: " + status);
+            if (status == ERR_NEED_MORE_IMGS) {
+                num = 1;
+                return ERR_CAMERA_PARAMS_ADJUST_FAIL;
+            } else if (status == ERR_HOMOGRAPHY_EST_FAIL) {
+                num = 1;
+                return ERR_HOMOGRAPHY_EST_FAIL;
+            } else if (status == ERR_CAMERA_PARAMS_ADJUST_FAIL) {
+                num = 1;
+                return ERR_CAMERA_PARAMS_ADJUST_FAIL;
+            }
+            Imgproc.cvtColor(srcRes, srcRes, Imgproc.COLOR_BGR2RGBA);
+            // save image result into database
+            Bitmap bitmap = Bitmap.createBitmap(srcRes.cols(), srcRes.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(srcRes, bitmap);
             uri = getImageUri(Objects.requireNonNull(getContext()), bitmap);
             saveImageToDatabase();
-            Toast.makeText(getContext(), "Stitched Image has been saved successfully...", Toast.LENGTH_SHORT).show();
-            // Clear the array
+            // clear the array
             images.clear();
             num = 1;
+            return OK;
         } catch (Exception e) {
             e.printStackTrace();
+            num = 1;
+            return ERR_OTHER;
         }
     }
 
@@ -210,6 +257,7 @@ public class StitcherFragment extends Fragment {
         });
     }
 
+    // Reference: https://learning.oreilly.com/library/view/opencv-3-blueprints/9781784399757/ch04s02.html
     @SuppressWarnings("deprecation")
     private Camera.PictureCallback jpegCallback = new Camera.PictureCallback() {
         public void onPictureTaken(byte[] data, Camera camera) {
@@ -220,9 +268,10 @@ public class StitcherFragment extends Fragment {
             matrix.postRotate(90);
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
             // Convert bitmap to mat and add it to array
-            Mat mat = new Mat();
-            Utils.bitmapToMat(bitmap, mat);
-            images.add(mat);
+            src = new Mat();
+            Utils.bitmapToMat(bitmap, src);
+            Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2RGB);
+            images.add(src);
             // Start preview the camera again and set the take picture flag to true
             camera.startPreview();
             safeToTakePicture = true;
@@ -248,13 +297,14 @@ public class StitcherFragment extends Fragment {
         num = 1;
     }
 
+    // Reference: https://learning.oreilly.com/library/view/opencv-3-blueprints/9781784399757/ch04s02.html
     @SuppressWarnings("deprecation")
     private Camera.Size getPreviewSize(Camera.Parameters parameters){
         Camera.Size size;
         List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();
         size = sizeList.get(0);
-        for(int i = 1; i < sizeList.size(); i++){
-            if((sizeList.get(i).width * sizeList.get(i).height) >
+        for (int i = 1; i < sizeList.size(); i++){
+            if ((sizeList.get(i).width * sizeList.get(i).height) >
                     (size.width * size.height)){
                 size = sizeList.get(i);
             }
@@ -266,5 +316,5 @@ public class StitcherFragment extends Fragment {
         return this;
     }
 
-    public native void stitchImages(long[] imageAddressArray, long outputAddress);
+    public native int stitchImages(Object[] images, int size, long addrSrcRes);
 }
