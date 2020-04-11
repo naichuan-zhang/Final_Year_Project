@@ -79,7 +79,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
         Objects.requireNonNull(getActivity()).setTitle(R.string.title_activity_settings);
         getPreferenceScreen().getSharedPreferences()
                 .registerOnSharedPreferenceChangeListener(this);
-        Objects.requireNonNull(findPreference(KEY_LANGUAGE)).setOnPreferenceClickListener(this);
+//        Objects.requireNonNull(findPreference(KEY_LANGUAGE)).setOnPreferenceClickListener(this);
+        findPreference(KEY_LANGUAGE).setOnPreferenceClickListener(this);
     }
 
     @Override

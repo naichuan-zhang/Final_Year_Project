@@ -545,7 +545,7 @@ public class PreviewFragment extends Fragment
         return Math.abs(slopeRS - slopePQ) < 0.1;
     }
 
-    private double getDistance(Point p1, Point p2) {
+    public double getDistance(Point p1, Point p2) {
         double distance = 0.0;
         if (p1 != null && p2 != null) {
             double xDiff = p1.x - p2.x;

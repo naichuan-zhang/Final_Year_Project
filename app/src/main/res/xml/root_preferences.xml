@@ -29,10 +29,10 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:title="@string/others_header">
+<!--    <PreferenceCategory-->
+<!--        app:title="@string/others_header">-->
 
 
-    </PreferenceCategory>
+<!--    </PreferenceCategory>-->
 
 </PreferenceScreen>
