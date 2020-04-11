@@ -32,6 +32,7 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -42,6 +43,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import static java.lang.Math.cos;
+import static java.lang.Math.max;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static org.opencv.imgproc.Imgproc.CV_CONTOURS_MATCH_I1;
+import static org.opencv.imgproc.Imgproc.matchShapes;
 
 public class PreviewFragment extends Fragment
         implements SeekBar.OnSeekBarChangeListener,
@@ -62,6 +71,7 @@ public class PreviewFragment extends Fragment
     private CheckBox pentagonCheckBox;
     private CheckBox hexagonCheckBox;
     private CheckBox circleCheckBox;
+    private CheckBox ellipseCheckBox;
 
     private SeekBar threshSeekBar;
 
@@ -101,11 +111,14 @@ public class PreviewFragment extends Fragment
         pentagonCheckBox = root.findViewById(R.id.pentagonCheckBox);
         hexagonCheckBox = root.findViewById(R.id.hexagonCheckBox);
         circleCheckBox = root.findViewById(R.id.circleCheckBox);
+        ellipseCheckBox = root.findViewById(R.id.ellipseCheckBox);
+
         triangleCheckBox.setOnCheckedChangeListener(this);
         quadrangleCheckBox.setOnCheckedChangeListener(this);
         pentagonCheckBox.setOnCheckedChangeListener(this);
         hexagonCheckBox.setOnCheckedChangeListener(this);
         circleCheckBox.setOnCheckedChangeListener(this);
+        ellipseCheckBox.setOnCheckedChangeListener(this);
 
         threshSeekBar = root.findViewById(R.id.threshSeekBar);
         threshSeekBar.setOnSeekBarChangeListener(this);
@@ -193,6 +206,7 @@ public class PreviewFragment extends Fragment
                     pentagonCheckBox.setChecked(false);
                     hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(false);
+                    ellipseCheckBox.setChecked(false);
                     findTriangles();
                 } break;
             case R.id.quadrangleCheckBox:
@@ -203,6 +217,7 @@ public class PreviewFragment extends Fragment
                     pentagonCheckBox.setChecked(false);
                     hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(false);
+                    ellipseCheckBox.setChecked(false);
                     findQuadrangles();
                 } break;
             case R.id.pentagonCheckBox:
@@ -213,6 +228,7 @@ public class PreviewFragment extends Fragment
                     pentagonCheckBox.setChecked(true);
                     hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(false);
+                    ellipseCheckBox.setChecked(false);
                     findPentagons();
                 } break;
             case R.id.hexagonCheckBox:
@@ -223,6 +239,7 @@ public class PreviewFragment extends Fragment
                     pentagonCheckBox.setChecked(false);
                     hexagonCheckBox.setChecked(true);
                     circleCheckBox.setChecked(false);
+                    ellipseCheckBox.setChecked(false);
                     findHexagons();
                 } break;
             case R.id.circleCheckBox:
@@ -233,8 +250,20 @@ public class PreviewFragment extends Fragment
                     pentagonCheckBox.setChecked(false);
                     hexagonCheckBox.setChecked(false);
                     circleCheckBox.setChecked(true);
+                    ellipseCheckBox.setChecked(false);
                     findCircles();
                 } break;
+            case R.id.ellipseCheckBox:
+                if (isChecked) {
+                    clearOutputs();
+                    triangleCheckBox.setChecked(false);
+                    quadrangleCheckBox.setChecked(false);
+                    pentagonCheckBox.setChecked(false);
+                    hexagonCheckBox.setChecked(false);
+                    circleCheckBox.setChecked(false);
+                    ellipseCheckBox.setChecked(true);
+                    findEllipses();
+                }
             default:
                 break;
         }
@@ -517,6 +546,91 @@ public class PreviewFragment extends Fragment
         previewImageView.setImageBitmap(outputBitmap);
     }
 
+    private void findEllipses() {
+        List<MatOfPoint> contours = new ArrayList<>();
+        List<Double> distances = new ArrayList<>();
+        double maxDist = 0, minDist = 0;
+        int max_n = 0, min_n = 0;
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int idx = 0; idx < contours.size(); idx++) {
+            MatOfPoint contour = contours.get(idx);
+            Point center = findCenter(contour);
+            Point[] points = contour.toArray();
+            // get distances of each point to center point
+            for (Point point : points) {
+                double dist = getDistance(point, center);
+                distances.add(dist);
+            }
+            // find the max dist and min dist
+            maxDist = distances.get(0);
+            minDist = distances.get(0);
+            for (int i = 0; i < distances.size(); i++) {
+                if (distances.get(i) >= maxDist) {
+                    maxDist = distances.get(i);
+                    max_n = i;
+                }
+                if (distances.get(i) <= minDist) {
+                    minDist = distances.get(i);
+                    min_n = i;
+                }
+            }
+            Log.i(TAG, "Max Dist: " + maxDist + ", Min Dist: " + minDist);
+
+            // find the focal point (焦点)
+            double long_ax, short_ax, focus_dist;
+            long_ax = maxDist;
+            short_ax = minDist;
+            focus_dist = sqrt(pow(maxDist, 2) - pow(minDist, 2));
+            Point F1 = new Point();
+            Point F2 = new Point();
+            Point vec = new Point();
+            vec.x = points[max_n].x - center.x;
+            vec.y = points[max_n].y - center.y;
+            double pro = focus_dist / long_ax;
+            vec.x = vec.x * pro;
+            vec.y = vec.y * pro;
+            F1.x = vec.x + center.x;
+            F1.y = vec.y + center.y;
+            F2.x = center.x - vec.x;
+            F2.y = center.y - vec.y;
+
+            Log.i(TAG, "F1: " + F1.x + " " + F1.y);
+            Log.i(TAG, "F2: " + F2.x + " " + F2.y);
+            Log.i(TAG, "vec: " + vec.x + " " + vec.y);
+
+            // get sum of all distances
+            List<Double> sumOfDistances = new ArrayList<>();
+            List<Double> rates = new ArrayList<>();
+            for (int i = 0; i < distances.size(); i++) {
+                double sumDist = sqrt(pow(F1.x - points[i].x, 2) + pow(F1.y - points[i].y, 2))
+                        + sqrt(pow(F2.x - points[i].x, 2) + pow(F2.y - points[i].y, 2));
+                sumOfDistances.add(sumDist);
+            }
+            for (int i = 0; i < distances.size(); i++) {
+                double rate;
+                if (2 * long_ax >= sumOfDistances.get(i))
+                    rate = 2 * long_ax / sumOfDistances.get(i);
+                else
+                    rate = sumOfDistances.get(i) / (2 * long_ax);
+                rates.add(rate);
+            }
+            int count = 0;
+            double percentage;
+            for (int i = 0; i < distances.size(); i++) {
+                if (rates.get(i) <= 1.035)
+                    count++;
+            }
+            percentage = count * 1.0 / rates.size() * 100;
+            Log.i(TAG, "The percentage is " + percentage + "%");
+            if (percentage >= 0.70 && (long_ax / short_ax) > 1.1) {
+                putLabel("Ellipse", center, percentage);
+                detectResult.append("Ellipse " + percentage + "% detected\n");
+            }
+        }
+        Utils.matToBitmap(outputMat, outputBitmap);
+        previewImageView.setImageBitmap(outputBitmap);
+    }
+
     private Point findCenter(MatOfPoint contour) {
         Moments moments = Imgproc.moments(contour);
         Point center = new Point();
@@ -525,15 +639,6 @@ public class PreviewFragment extends Fragment
         Imgproc.circle(outputMat, center, 3, new Scalar(255, 0, 0));
         return center;
     }
-
-//    @Deprecated
-//    public boolean isParallel(Point P, Point Q, Point R, Point S) {
-//        double x1 = P.x, x2 = Q.x, x3 = R.x, x4 = S.x;
-//        double y1 = P.y, y2 = Q.y, y3 = R.y, y4 = S.y;
-//
-//        // check if lines PQ and RS are parallel
-//        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 10;
-//    }
 
     public boolean isParallel(Point P, Point Q, Point R, Point S) {
         double x1 = P.x, x2 = Q.x, x3 = R.x, x4 = S.x;
@@ -545,12 +650,21 @@ public class PreviewFragment extends Fragment
         return Math.abs(slopeRS - slopePQ) < 0.1;
     }
 
+//    @Deprecated
+//    public boolean isParallel(Point P, Point Q, Point R, Point S) {
+//        double x1 = P.x, x2 = Q.x, x3 = R.x, x4 = S.x;
+//        double y1 = P.y, y2 = Q.y, y3 = R.y, y4 = S.y;
+//
+//        // check if lines PQ and RS are parallel
+//        return Math.abs((x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1)) < 10;
+//    }
+
     public double getDistance(Point p1, Point p2) {
         double distance = 0.0;
         if (p1 != null && p2 != null) {
             double xDiff = p1.x - p2.x;
             double yDiff = p1.y - p2.y;
-            distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+            distance = sqrt(pow(xDiff, 2) + pow(yDiff, 2));
         }
         return distance;
     }
@@ -566,7 +680,7 @@ public class PreviewFragment extends Fragment
         int vector = (int) ((point0X - vertexPointX) * (point1X - vertexPointX)
                 + (point0Y - vertexPointY) * (point1Y - vertexPointY));
         // 向量的模乘
-        double sqrt = Math.sqrt(
+        double sqrt = sqrt(
                 (Math.abs((point0X - vertexPointX) * (point0X - vertexPointX))
                         + Math.abs((point0Y - vertexPointY) * (point0Y - vertexPointY)))
                         * (Math.abs((point1X - vertexPointX) * (point1X - vertexPointX))

@@ -116,4 +116,5 @@
     <string name="phone_number">(+353)833955546</string>
     <string name="mobile_phone">Mobile Phone</string>
     <string name="view_project_details">View Project Details</string>
+    <string name="ellipse">Ellipse</string>
 </resources>

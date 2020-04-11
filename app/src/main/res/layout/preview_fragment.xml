@@ -51,26 +51,37 @@
             app:layout_constraintTop_toTopOf="@+id/quadrangleCheckBox" />
 
         <CheckBox
-            android:id="@+id/circleCheckBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/circle"
-            app:layout_constraintBottom_toBottomOf="@+id/hexagonCheckBox"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/hexagonCheckBox"
-            app:layout_constraintTop_toTopOf="@+id/hexagonCheckBox" />
-
-        <CheckBox
             android:id="@+id/hexagonCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/hexagon"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/circleCheckBox"
             app:layout_constraintEnd_toStartOf="@+id/circleCheckBox"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/triangleCheckBox" />
+            app:layout_constraintTop_toTopOf="@+id/circleCheckBox" />
+
+        <CheckBox
+            android:id="@+id/circleCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/circle"
+            app:layout_constraintBottom_toBottomOf="@+id/ellipseCheckBox"
+            app:layout_constraintEnd_toStartOf="@+id/ellipseCheckBox"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/hexagonCheckBox"
+            app:layout_constraintTop_toTopOf="@+id/ellipseCheckBox" />
+
+        <CheckBox
+            android:id="@+id/ellipseCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ellipse"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/circleCheckBox"
+            app:layout_constraintTop_toBottomOf="@+id/pentagonCheckBox" />
 
         <SeekBar
             android:id="@+id/threshSeekBar"
