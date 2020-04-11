@@ -17,6 +17,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -39,6 +40,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static android.hardware.Camera.CameraInfo.*;
 
 
 /*
@@ -66,6 +69,7 @@ public class StitcherFragment extends Fragment {
     private View root;
     private Button captureButton, saveButton;
     private SurfaceView surfaceView;
+    private ImageView stitcherImageView;
     private Camera camera;
     private boolean isPreview;
     private boolean safeToTakePicture = true;
@@ -91,6 +95,7 @@ public class StitcherFragment extends Fragment {
         surfaceView = root.findViewById(R.id.surfaceView);
         captureButton = root.findViewById(R.id.captureButton);
         saveButton = root.findViewById(R.id.saveStitcherButton);
+        stitcherImageView = root.findViewById(R.id.stitcherImageView);
         return root;
     }
 
@@ -98,6 +103,9 @@ public class StitcherFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         stitcherViewModel = ViewModelProviders.of(this).get(StitcherViewModel.class);
+
+        // set stitcher image view invisible by default
+        stitcherImageView.setVisibility(View.INVISIBLE);
 
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -124,6 +132,7 @@ public class StitcherFragment extends Fragment {
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
+                // Do nothing
             }
         });
 
@@ -147,6 +156,9 @@ public class StitcherFragment extends Fragment {
                     @Override
                     public void run() {
                         Looper.prepare();
+
+                        stitcherImageView.setVisibility(View.INVISIBLE);
+
                         if (images.size() == 0) {
                             Toast.makeText(getContext(), "No images captured", Toast.LENGTH_SHORT).show();
                         } else if (images.size() == 1) {
@@ -260,6 +272,7 @@ public class StitcherFragment extends Fragment {
     // Reference: https://learning.oreilly.com/library/view/opencv-3-blueprints/9781784399757/ch04s02.html
     @SuppressWarnings("deprecation")
     private Camera.PictureCallback jpegCallback = new Camera.PictureCallback() {
+
         public void onPictureTaken(byte[] data, Camera camera) {
             // Decode the byte array to a bitmap
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
@@ -270,6 +283,7 @@ public class StitcherFragment extends Fragment {
             // Convert bitmap to mat and add it to array
             src = new Mat();
             Utils.bitmapToMat(bitmap, src);
+            displayCapturedImage(bitmap);
             Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2RGB);
             images.add(src);
             // Start preview the camera again and set the take picture flag to true
@@ -279,10 +293,15 @@ public class StitcherFragment extends Fragment {
         }
     };
 
+    private void displayCapturedImage(Bitmap bitmap) {
+        stitcherImageView.setVisibility(View.VISIBLE);
+        stitcherImageView.setImageBitmap(bitmap);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        camera = Camera.open(0);
+        camera = Camera.open(CAMERA_FACING_BACK);
         num = 1;
     }
 
@@ -302,6 +321,9 @@ public class StitcherFragment extends Fragment {
     private Camera.Size getPreviewSize(Camera.Parameters parameters){
         Camera.Size size;
         List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();
+        for (int i = 0; i < sizeList.size(); i++) {
+            Log.i(TAG, sizeList.get(i).height + " " + sizeList.get(i).width);
+        }
         size = sizeList.get(0);
         for (int i = 1; i < sizeList.size(); i++){
             if ((sizeList.get(i).width * sizeList.get(i).height) >
@@ -309,6 +331,8 @@ public class StitcherFragment extends Fragment {
                 size = sizeList.get(i);
             }
         }
+        Log.i(TAG, "Selected Preview Size: " + size.width + " " + size.height);
+
         return size;
     }
 

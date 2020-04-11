@@ -29,7 +29,7 @@ public interface ImageDao {
 //    LiveData<List<Image>> findImageByName(String imageName);
 
     // Allow the app to update UI automatically when the data changes
-    @Query("SELECT * FROM image")
+    @Query("SELECT * FROM image ORDER BY strftime('%Y-%m-%d %H:%M:%S', imageDate) DESC")
     LiveData<List<Image>> getAllImages();
 
     @Query("DELETE FROM image")

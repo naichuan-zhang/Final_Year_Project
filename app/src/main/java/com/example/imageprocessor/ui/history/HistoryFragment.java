@@ -78,7 +78,7 @@ public class HistoryFragment extends Fragment {
             @Override
             public void onRefresh() {
                 Log.i(TAG, "swipeRefreshLayout -> onRefresh");
-                // TODO: Refresh ...
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }
