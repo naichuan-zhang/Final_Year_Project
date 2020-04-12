@@ -8,13 +8,15 @@ import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.misc.OpenCVUtil;
-import com.example.imageprocessor.misc.ZoomableCameraView;
+import com.example.imageprocessor.misc.RealTimeCameraView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -59,15 +61,20 @@ public class RealTimeActivity extends AppCompatActivity
     private final static int VIEW_MODE_PENTAGONS = 7;
     private final static int VIEW_MODE_LINES = 8;
 
+    private final static int FLASH_ON = 9;
+    private final static int FLASH_OFF = 10;
+
     private final static List<String> shapes = new ArrayList<>(
             Arrays.asList("Triangle", "Rectangle", "Pentagon", "Circle")
     );
 
     private static int thresh = 0;
 
-    private ZoomableCameraView javaCameraView;
+    private RealTimeCameraView javaCameraView;
     private SeekBar zoomSeekBar;
     private SeekBar thresholdSeekBar;
+    private ImageButton flashButton;
+
     private MenuItem itemPreviewRGBA;
     private MenuItem itemPreviewGray;
     private MenuItem itemPreviewCanny;
@@ -78,6 +85,7 @@ public class RealTimeActivity extends AppCompatActivity
     private int width;
     private int height;
     private int viewMode;
+    private int flashMode;
 
     private Mat matRgba;
     private Mat matGray;
@@ -117,6 +125,30 @@ public class RealTimeActivity extends AppCompatActivity
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+
+        flashButton = findViewById(R.id.flashImageButton);
+        flashButton.setVisibility(View.VISIBLE);
+        // set init flash mode is FLASH_OFF
+        flashMode = FLASH_OFF;
+
+        flashButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (flashMode == FLASH_OFF) {
+                    javaCameraView.turnOnFlash();
+                    flashButton.setImageDrawable(getDrawable(R.drawable.ic_flash_on));
+                    flashMode = FLASH_ON;
+                    Toast.makeText(getApplicationContext(),
+                            "Flash has been turned on", Toast.LENGTH_SHORT).show();
+                } else if (flashMode == FLASH_ON) {
+                    javaCameraView.turnOffFlash();
+                    flashButton.setImageDrawable(getDrawable(R.drawable.ic_flash_off_black_24dp));
+                    flashMode = FLASH_OFF;
+                    Toast.makeText(getApplicationContext(),
+                            "Flash has been turned off", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
