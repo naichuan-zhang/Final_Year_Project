@@ -143,10 +143,6 @@ public class MainActivity extends AppCompatActivity
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 return true;
-            case R.id.action_about:
-                Log.i(TAG, "action about");
-                // TODO: action about to be finished ...
-                return true;
             case R.id.action_quit:
                 Log.i(TAG, "action quit");
                 showQuitDialog();

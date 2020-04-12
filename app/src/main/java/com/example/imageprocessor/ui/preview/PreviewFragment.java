@@ -548,14 +548,14 @@ public class PreviewFragment extends Fragment
 
     private void findEllipses() {
         List<MatOfPoint> contours = new ArrayList<>();
-        List<Double> distances = new ArrayList<>();
         double maxDist = 0, minDist = 0;
-        int max_n = 0, min_n = 0;
+        int maxIdx = 0, minIdx = 0;
         Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int idx = 0; idx < contours.size(); idx++) {
             MatOfPoint contour = contours.get(idx);
             Point center = findCenter(contour);
             Point[] points = contour.toArray();
+            List<Double> distances = new ArrayList<>();
             // get distances of each point to center point
             for (Point point : points) {
                 double dist = getDistance(point, center);
@@ -567,26 +567,25 @@ public class PreviewFragment extends Fragment
             for (int i = 0; i < distances.size(); i++) {
                 if (distances.get(i) >= maxDist) {
                     maxDist = distances.get(i);
-                    max_n = i;
+                    maxIdx = i;
                 }
                 if (distances.get(i) <= minDist) {
                     minDist = distances.get(i);
-                    min_n = i;
+                    minIdx = i;
                 }
             }
             Log.i(TAG, "Max Dist: " + maxDist + ", Min Dist: " + minDist);
-
+            Log.i(TAG, "Max Idx: " + maxIdx + ", Min Dist: " + minIdx);
             // find the focal point (焦点)
-            double long_ax, short_ax, focus_dist;
-            long_ax = maxDist;
-            short_ax = minDist;
-            focus_dist = sqrt(pow(maxDist, 2) - pow(minDist, 2));
+            double longAxis = maxDist;
+            double shortAxis = minDist;
+            double focus_dist = sqrt(pow(maxDist, 2) - pow(minDist, 2));
             Point F1 = new Point();
             Point F2 = new Point();
             Point vec = new Point();
-            vec.x = points[max_n].x - center.x;
-            vec.y = points[max_n].y - center.y;
-            double pro = focus_dist / long_ax;
+            vec.x = points[maxIdx].x - center.x;
+            vec.y = points[maxIdx].y - center.y;
+            double pro = focus_dist / longAxis;
             vec.x = vec.x * pro;
             vec.y = vec.y * pro;
             F1.x = vec.x + center.x;
@@ -601,17 +600,20 @@ public class PreviewFragment extends Fragment
             // get sum of all distances
             List<Double> sumOfDistances = new ArrayList<>();
             List<Double> rates = new ArrayList<>();
+
+            Log.i(TAG, "points length: " + points.length);
+            Log.i(TAG, "distances size: " + distances.size());
             for (int i = 0; i < distances.size(); i++) {
-                double sumDist = sqrt(pow(F1.x - points[i].x, 2) + pow(F1.y - points[i].y, 2))
+                double sumOfDist = sqrt(pow(F1.x - points[i].x, 2) + pow(F1.y - points[i].y, 2))
                         + sqrt(pow(F2.x - points[i].x, 2) + pow(F2.y - points[i].y, 2));
-                sumOfDistances.add(sumDist);
+                sumOfDistances.add(sumOfDist);
             }
             for (int i = 0; i < distances.size(); i++) {
                 double rate;
-                if (2 * long_ax >= sumOfDistances.get(i))
-                    rate = 2 * long_ax / sumOfDistances.get(i);
+                if (2 * longAxis >= sumOfDistances.get(i))
+                    rate = 2 * longAxis / sumOfDistances.get(i);
                 else
-                    rate = sumOfDistances.get(i) / (2 * long_ax);
+                    rate = sumOfDistances.get(i) / (2 * longAxis);
                 rates.add(rate);
             }
             int count = 0;
@@ -622,7 +624,7 @@ public class PreviewFragment extends Fragment
             }
             percentage = count * 1.0 / rates.size() * 100;
             Log.i(TAG, "The percentage is " + percentage + "%");
-            if (percentage >= 0.70 && (long_ax / short_ax) > 1.1) {
+            if (percentage >= 60 && (longAxis / shortAxis) > 1.1) {
                 putLabel("Ellipse", center, percentage);
                 detectResult.append("Ellipse " + percentage + "% detected\n");
             }
@@ -636,7 +638,7 @@ public class PreviewFragment extends Fragment
         Point center = new Point();
         center.x = moments.get_m10() / moments.get_m00();
         center.y = moments.get_m01() / moments.get_m00();
-        Imgproc.circle(outputMat, center, 3, new Scalar(255, 0, 0));
+        Imgproc.circle(outputMat, center, 2, new Scalar(255, 0, 0));
         return center;
     }
 
