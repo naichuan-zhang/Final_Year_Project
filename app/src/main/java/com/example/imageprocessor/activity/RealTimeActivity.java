@@ -112,9 +112,9 @@ public class RealTimeActivity extends AppCompatActivity
         // init dark mode settings on RealTimeActivity
         darkModeSharedPref = new DarkModeSharedPref(this);
         if (darkModeSharedPref.loadDarkModeState()) {
-            setTheme(R.style.DarkTheme_NoActionBar);
+            setTheme(R.style.DarkTheme);
         } else {
-            setTheme(R.style.AppTheme_NoActionBar);
+            setTheme(R.style.AppTheme);
         }
 
         // init language settings on RealTimeActivity
