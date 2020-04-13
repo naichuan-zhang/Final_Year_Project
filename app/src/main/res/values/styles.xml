@@ -2,9 +2,9 @@
 
     <!-- Light Theme -> used in Settings Activity -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">#B69E3A</item>
+        <item name="colorPrimaryDark">#00574B</item>
+        <item name="colorAccent">#D81B60</item>
         <item name="android:statusBarColor" tools:targetApi="lollipop">#B69E3A</item>
         <item name="android:windowBackground">@color/homeBackground</item>
     </style>
@@ -24,6 +24,7 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:statusBarColor" tools:targetApi="lollipop">#B69E3A</item>
+        <item name="android:windowBackground">@color/homeBackground</item>
     </style>
 
     <!-- Dark Theme No Action Bar -> used in MainActivity -->
@@ -32,6 +33,7 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:statusBarColor" tools:targetApi="lollipop">#141212</item>
+        <item name="android:windowBackground">@color/homeBackgroundDark</item>
     </style>
 
     <style name="AppTheme.Launcher" parent="AppTheme.NoActionBar">
