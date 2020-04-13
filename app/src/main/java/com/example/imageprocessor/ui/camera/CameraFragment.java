@@ -54,7 +54,7 @@ public class CameraFragment extends Fragment implements ICameraFragment {
                 cameraImpl.openCamera();
             }
         });
-        // custom camera invocation
+        // real time camera invocation
         constraintLayoutCustomCamera = root.findViewById(R.id.constraintLayoutCustomCamera);
         constraintLayoutCustomCamera.setOnClickListener(new View.OnClickListener() {
             @Override

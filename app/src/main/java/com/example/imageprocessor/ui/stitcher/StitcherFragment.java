@@ -44,10 +44,10 @@ import java.util.Objects;
 import static android.hardware.Camera.CameraInfo.*;
 
 
-/*
- Reference:
-    https://learning.oreilly.com/library/view/opencv-3-blueprints/9781784399757/ch04s02.html
-*/
+/**
+ * Adapted from:
+ *   https://learning.oreilly.com/library/view/opencv-3-blueprints/9781784399757/ch04s02.html
+ */
 public class StitcherFragment extends Fragment {
 
     static {

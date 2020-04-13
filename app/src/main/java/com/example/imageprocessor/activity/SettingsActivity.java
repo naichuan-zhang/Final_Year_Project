@@ -2,9 +2,12 @@ package com.example.imageprocessor.activity;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -12,7 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.misc.DarkModeSharedPref;
+import com.example.imageprocessor.misc.LanguageSharedPref;
 import com.example.imageprocessor.ui.settings.SettingsFragment;
+
+import java.util.Locale;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -20,6 +26,7 @@ public class SettingsActivity extends AppCompatActivity {
     private final static String TAG = "SettingsActivity: ";
 
     DarkModeSharedPref darkModeSharedPref;
+    LanguageSharedPref languageSharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +37,20 @@ public class SettingsActivity extends AppCompatActivity {
         } else {
             setTheme(R.style.AppTheme);
         }
+
+        // init language settings on SettingsActivity
+        languageSharedPref = new LanguageSharedPref(this);
+        Resources resources = getResources();
+        Configuration configuration = resources.getConfiguration();
+        if (languageSharedPref.loadLanguageState()
+                .equalsIgnoreCase("english")) {
+            configuration.locale = Locale.ENGLISH;
+        } else {
+            configuration.locale = Locale.CHINA;
+        }
+        DisplayMetrics metrics = new DisplayMetrics();
+        resources.updateConfiguration(configuration, metrics);
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);

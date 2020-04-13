@@ -74,7 +74,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="menu_stitcher">Stitcher</string>
-    <string name="custom_camera">Custom Camera</string>
+    <string name="custom_camera">Real Time Camera</string>
     <string name="real_time">Real Time Detection</string>
     <string name="color_effects_not_supported">Color effects are not supported!</string>
     <string name="color_effects">Color Effects</string>
@@ -117,4 +117,5 @@
     <string name="mobile_phone">Mobile Phone</string>
     <string name="view_project_details">View Project Details</string>
     <string name="ellipse">Ellipse</string>
+    <string name="title_activity_real_time">Real Time Detection</string>
 </resources>

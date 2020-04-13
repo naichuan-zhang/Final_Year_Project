@@ -29,14 +29,19 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Reference:
- *      @link https://www.javarticles.com/2015/08/android-change-locale-dynamically.html
+ * Adapter from:
+ *      https://www.javarticles.com/2015/08/android-change-locale-dynamically.html
  */
 public class LanguagesDialog extends DialogFragment {
+
+    private LanguageSharedPref languageSharedPref;
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+
+        languageSharedPref = new LanguageSharedPref(getContext());
+
         final SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
         final Map<String, String> localeMap = new HashMap<>();
         String[] availableLanguages = getResources().getStringArray(R.array.languages);
@@ -77,6 +82,12 @@ public class LanguagesDialog extends DialogFragment {
                 }
                 resources.updateConfiguration(configuration, metrics);
                 settings.edit().putString(SettingsFragment.LANGUAGE_SETTING, localeString).apply();
+
+                // save the current language into language state
+                if (localeString.equalsIgnoreCase("en-us"))
+                    languageSharedPref.setLanguageState("english");
+                else if (localeString.equalsIgnoreCase("zh"))
+                    languageSharedPref.setLanguageState("chinese");
 
                 Intent refresh = new Intent(getActivity(), Objects.requireNonNull(getActivity()).getClass());
                 // For smooth transition

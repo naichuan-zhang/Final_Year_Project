@@ -1,6 +1,9 @@
 package com.example.imageprocessor.activity;
 
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,8 +16,11 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.imageprocessor.R;
+import com.example.imageprocessor.misc.DarkModeSharedPref;
+import com.example.imageprocessor.misc.LanguageSharedPref;
 import com.example.imageprocessor.misc.OpenCVUtil;
 import com.example.imageprocessor.misc.RealTimeCameraView;
 
@@ -35,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class RealTimeActivity extends AppCompatActivity
         implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -97,11 +104,37 @@ public class RealTimeActivity extends AppCompatActivity
     private MatOfPoint2f approxCurve;
     private OpenCVUtil openCVUtil;
 
+    DarkModeSharedPref darkModeSharedPref;
+    LanguageSharedPref languageSharedPref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // init dark mode settings on RealTimeActivity
+        darkModeSharedPref = new DarkModeSharedPref(this);
+        if (darkModeSharedPref.loadDarkModeState()) {
+            setTheme(R.style.DarkTheme_NoActionBar);
+        } else {
+            setTheme(R.style.AppTheme_NoActionBar);
+        }
+
+        // init language settings on RealTimeActivity
+        languageSharedPref = new LanguageSharedPref(this);
+        Resources resources = getResources();
+        Configuration configuration = resources.getConfiguration();
+        if (languageSharedPref.loadLanguageState()
+                .equalsIgnoreCase("english")) {
+            configuration.locale = Locale.ENGLISH;
+        } else {
+            configuration.locale = Locale.CHINA;
+        }
+        DisplayMetrics metrics = new DisplayMetrics();
+        resources.updateConfiguration(configuration, metrics);
+
+
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_real_time);
+        setTitle(R.string.title_activity_real_time);
 
         javaCameraView = findViewById(R.id.javaCameraView);
         javaCameraView.setCvCameraViewListener(this);

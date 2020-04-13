@@ -1,10 +1,13 @@
 package com.example.imageprocessor.activity;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -29,6 +33,7 @@ import androidx.preference.PreferenceManager;
 
 import com.example.imageprocessor.R;
 import com.example.imageprocessor.misc.DarkModeSharedPref;
+import com.example.imageprocessor.misc.LanguageSharedPref;
 import com.example.imageprocessor.misc.SettingsConfig;
 import com.example.imageprocessor.ui.about.AboutFragment;
 import com.example.imageprocessor.ui.camera.CameraFragment;
@@ -66,17 +71,31 @@ public class MainActivity extends AppCompatActivity
     private Locale currentLocale;
 
     DarkModeSharedPref darkModeSharedPref;
+    LanguageSharedPref languageSharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // init dark mode settings on MainActivity
         darkModeSharedPref = new DarkModeSharedPref(this);
         if (darkModeSharedPref.loadDarkModeState()) {
-            // it must be NoActionBar since using toolbar
             setTheme(R.style.DarkTheme_NoActionBar);
         } else {
             setTheme(R.style.AppTheme_NoActionBar);
         }
+
+        // init language settings on MainActivity
+        languageSharedPref = new LanguageSharedPref(this);
+        Resources resources = getResources();
+        Configuration configuration = resources.getConfiguration();
+        if (languageSharedPref.loadLanguageState()
+                .equalsIgnoreCase("english")) {
+            configuration.locale = Locale.ENGLISH;
+        } else {
+            configuration.locale = Locale.CHINA;
+        }
+        DisplayMetrics metrics = new DisplayMetrics();
+        resources.updateConfiguration(configuration, metrics);
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -116,6 +135,29 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     toolbar.setVisibility(View.VISIBLE);
                 }
+
+                // adapt the settings changes when change to any other fragments
+                // init dark mode settings on MainActivity
+                darkModeSharedPref = new DarkModeSharedPref(getContext());
+                if (darkModeSharedPref.loadDarkModeState()) {
+                    // it must be NoActionBar since using toolbar
+                    setTheme(R.style.DarkTheme_NoActionBar);
+                } else {
+                    setTheme(R.style.AppTheme_NoActionBar);
+                }
+
+                // init language settings on MainActivity
+                languageSharedPref = new LanguageSharedPref(getContext());
+                Resources resources = getResources();
+                Configuration configuration = resources.getConfiguration();
+                if (languageSharedPref.loadLanguageState()
+                        .equalsIgnoreCase("english")) {
+                    configuration.locale = Locale.ENGLISH;
+                } else {
+                    configuration.locale = Locale.CHINA;
+                }
+                DisplayMetrics metrics = new DisplayMetrics();
+                resources.updateConfiguration(configuration, metrics);
             }
         });
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
@@ -229,5 +271,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         return false;
+    }
+
+    public Context getContext() {
+        return this;
     }
 }

@@ -72,7 +72,7 @@
     <string name="save_failed">保存失败</string>
     <string name="share_to">分享图片到</string>
     <string name="menu_stitcher">拼接</string>
-    <string name="custom_camera">自定义相机</string>
+    <string name="custom_camera">实时相机</string>
     <string name="real_time">实时检测</string>
     <string name="color_effects_not_supported">该设备不支持任何颜色效果！</string>
     <string name="color_effects">颜色效果</string>
@@ -115,4 +115,5 @@
     <string name="mobile_phone">移动电话</string>
     <string name="view_project_details">查看项目详情</string>
     <string name="ellipse">椭圆</string>
+    <string name="title_activity_real_time">实时检测</string>
 </resources>
