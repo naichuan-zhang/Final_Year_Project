@@ -678,19 +678,19 @@ public class PreviewFragment extends Fragment
         double point0Y = pt1.y;
         double point1X = pt2.x;
         double point1Y = pt2.y;
-        // 向量的点乘
+        // dot production
         int vector = (int) ((point0X - vertexPointX) * (point1X - vertexPointX)
                 + (point0Y - vertexPointY) * (point1Y - vertexPointY));
-        // 向量的模乘
+        // scalar multiplication
         double sqrt = sqrt(
                 (Math.abs((point0X - vertexPointX) * (point0X - vertexPointX))
                         + Math.abs((point0Y - vertexPointY) * (point0Y - vertexPointY)))
                         * (Math.abs((point1X - vertexPointX) * (point1X - vertexPointX))
                         + Math.abs((point1Y - vertexPointY) * (point1Y - vertexPointY)))
         );
-        // 反余弦计算弧度
+        // calc radian with arccos
         double radian = Math.acos(vector / sqrt);
-        // 弧度转角度制
+        // radian to angular
         return (int) (180 * radian / Math.PI);
     }
 
