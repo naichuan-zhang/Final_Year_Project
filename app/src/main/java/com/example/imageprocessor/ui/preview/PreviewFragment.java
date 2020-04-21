@@ -471,7 +471,7 @@ public class PreviewFragment extends Fragment
     private void findPentagons() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
@@ -494,7 +494,7 @@ public class PreviewFragment extends Fragment
     private void findHexagons() {
         MatOfPoint2f approxCurve = new MatOfPoint2f();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(srcMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             MatOfPoint2f curve = new MatOfPoint2f(contour.toArray());
@@ -577,15 +577,15 @@ public class PreviewFragment extends Fragment
             Log.i(TAG, "Max Dist: " + maxDist + ", Min Dist: " + minDist);
             Log.i(TAG, "Max Idx: " + maxIdx + ", Min Dist: " + minIdx);
             // find the focal point (焦点)
-            double longAxis = maxDist;
-            double shortAxis = minDist;
+            double majorAxis = maxDist;
+            double minorAxis = minDist;
             double focus_dist = sqrt(pow(maxDist, 2) - pow(minDist, 2));
             Point F1 = new Point();
             Point F2 = new Point();
             Point vec = new Point();
             vec.x = points[maxIdx].x - center.x;
             vec.y = points[maxIdx].y - center.y;
-            double pro = focus_dist / longAxis;
+            double pro = focus_dist / majorAxis;
             vec.x = vec.x * pro;
             vec.y = vec.y * pro;
             F1.x = vec.x + center.x;
@@ -610,10 +610,10 @@ public class PreviewFragment extends Fragment
             }
             for (int i = 0; i < distances.size(); i++) {
                 double rate;
-                if (2 * longAxis >= sumOfDistances.get(i))
-                    rate = 2 * longAxis / sumOfDistances.get(i);
+                if (2 * majorAxis >= sumOfDistances.get(i))
+                    rate = 2 * majorAxis / sumOfDistances.get(i);
                 else
-                    rate = sumOfDistances.get(i) / (2 * longAxis);
+                    rate = sumOfDistances.get(i) / (2 * majorAxis);
                 rates.add(rate);
             }
             int count = 0;
@@ -624,7 +624,7 @@ public class PreviewFragment extends Fragment
             }
             percentage = count * 1.0 / rates.size() * 100;
             Log.i(TAG, "The percentage is " + percentage + "%");
-            if (percentage >= 60 && (longAxis / shortAxis) > 1.1) {
+            if (percentage >= 60 && (majorAxis / minorAxis) > 1.1) {
                 putLabel("Ellipse", center, percentage);
                 detectResult.append("Ellipse " + percentage + "% detected\n");
             }
